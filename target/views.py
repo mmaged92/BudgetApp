@@ -5,6 +5,7 @@ from .models import years, months
 from .models import categories_table, budget_target
 from django.http import JsonResponse
 import json
+from django.contrib.auth.decorators import login_required
 
 
 years_list = list(range(1990, 2055))
@@ -59,6 +60,7 @@ category_list = ['housing',
 # for m in months.objects.all():
 #      print(m.month, m.year_id.years)
 
+@login_required(login_url="/users/loginpage/")
 def category_add(request):
 
     for category in category_list:
@@ -74,6 +76,7 @@ def category_add(request):
     categories = categories_table.objects.exclude(categories_name__in=["credit card payment", "refund or cashback"])
     return render(request, 'target/category_edit.html', {"categories":categories})
 
+@login_required(login_url="/users/loginpage/")
 def category_get(request):
     categories = categories_table.objects.all()
     category_list = []
@@ -81,6 +84,7 @@ def category_get(request):
         category_list.append({"Category":category.categories_name, "category_id":category.id})
     return JsonResponse(category_list, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def category_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -93,6 +97,7 @@ def category_update(request):
         return JsonResponse({'status': 'updated', 'newValue': newValue})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+@login_required(login_url="/users/loginpage/")
 def category_delete(request):
     if request.method == 'DELETE':
         data = json.loads(request.body)
@@ -107,6 +112,7 @@ def category_delete(request):
         return JsonResponse({'status': 'deleted'})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+@login_required(login_url="/users/loginpage/")
 def target_insert(request):
     if request.method == "POST":
         freq = request.POST.get('frequency')
@@ -146,7 +152,7 @@ def target_insert(request):
 
     return render(request, 'target/targetset.html',{"categories":categories, "years" : years_list})
 
-
+@login_required(login_url="/users/loginpage/")
 def target_delete(request):
     if request.method == 'DELETE':
         data = json.loads(request.body)
@@ -161,6 +167,7 @@ def target_delete(request):
         return JsonResponse({'status': 'deleted'})
     return JsonResponse({'error': 'Invalid method'}, status=405)   
 
+@login_required(login_url="/users/loginpage/")
 def target_get(request):
     targets = budget_target.objects.all()
     target_list = []
@@ -178,7 +185,7 @@ def target_get(request):
                         'month_id': month_id})            
     return JsonResponse(target_list, safe=False)
 
-
+@login_required(login_url="/users/loginpage/")
 def year_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -206,6 +213,7 @@ def year_update(request):
         return JsonResponse({'status': 'modified'})
     return JsonResponse({'error':'Invalid method'}, status = 405)
 
+@login_required(login_url="/users/loginpage/")
 def month_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -232,6 +240,7 @@ def month_update(request):
         return JsonResponse({'status': 'modified'})
     return JsonResponse({'error':'Invalid method'}, status = 405)
 
+@login_required(login_url="/users/loginpage/")
 def category_update_target(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -255,6 +264,7 @@ def target_update(request):
         return JsonResponse({'status':'updated'})
     return JsonResponse({'error':'Invalid method'}, status = 405)
 
+@login_required(login_url="/users/loginpage/")
 def freq_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -277,13 +287,16 @@ def freq_update(request):
         return JsonResponse({'status':'updated'})
     return JsonResponse({'error':'Invalid method'}, status = 405)
 
+@login_required(login_url="/users/loginpage/")
 def monthget(request):
     month = ['January', 'February', 'March', ' April', 'June', 'July', 'August', 'September', 'October'
              , 'November', 'December']
     return JsonResponse(month, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def yearget(request):
     return JsonResponse(years_list, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def freqget(request):
     return JsonResponse(distribution, safe=False)

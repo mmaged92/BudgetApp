@@ -6,6 +6,7 @@ from target.models import categories_table
 from accounts.models import Bank, Accounts
 from datetime import datetime, timedelta
 from django.core import serializers
+from django.contrib.auth.decorators import login_required
 import json
 
 # file_path = 'C:/Users/mahmo/OneDrive/Desktop/Budget/keyword.csv'
@@ -21,7 +22,7 @@ ios = ['income', 'expense', 'credit card payment', 'refund or cashback']
 card_types = ['Credit' , 'Debit']
 accounts = ['Chequing', ' Saving', 'Credit']
 
-
+@login_required(login_url="/users/loginpage/")
 def trans_add(request):
     end_date = datetime.today().date()
     start_date = end_date - timedelta(days=15)
@@ -117,10 +118,12 @@ def trans_add(request):
 
     return render(request, 'trans/trans.html', {'transactions': transactions, 'card_types': card_types, 'categories':categories, 'ios':ios, 'account_names':account_names})
 
+@login_required(login_url="/users/loginpage/")
 def trans_edit(request):
     print(request)
     return JsonResponse({}, status=405)
 
+@login_required(login_url="/users/loginpage/")
 def trans_all(request):
     transactions = trans.objects.all()
     transactions_list = []
@@ -138,6 +141,7 @@ def trans_all(request):
     return JsonResponse(transactions_list, safe=False)
 
 
+@login_required(login_url="/users/loginpage/")
 def Account_get(request):
     accounts = Accounts.objects.all()
     account_list = []
@@ -146,9 +150,11 @@ def Account_get(request):
     return JsonResponse(account_list, safe=False)
 
 
+@login_required(login_url="/users/loginpage/")
 def IO_get(request):
     return JsonResponse(ios, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def description_update(request):
     if request.method =='PUT':
         data = json.loads(request.body)
@@ -160,6 +166,7 @@ def description_update(request):
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+@login_required(login_url="/users/loginpage/")
 def date_update(request):
     if request.method =='PUT':
         data = json.loads(request.body)
@@ -171,6 +178,7 @@ def date_update(request):
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+@login_required(login_url="/users/loginpage/")
 def amount_update(request):
     if request.method =='PUT':
         data = json.loads(request.body)
@@ -182,6 +190,7 @@ def amount_update(request):
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+@login_required(login_url="/users/loginpage/")
 def category_update(request):
     if request.method =='PUT':
         data = json.loads(request.body)
@@ -196,7 +205,7 @@ def category_update(request):
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
-
+@login_required(login_url="/users/loginpage/")
 def IO_update(request):
     if request.method =='PUT':
         data = json.loads(request.body)
@@ -208,6 +217,8 @@ def IO_update(request):
 
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@login_required(login_url="/users/loginpage/")
 def account_update(request):
     if request.method =='PUT':
         data = json.loads(request.body)
@@ -222,10 +233,7 @@ def account_update(request):
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
-
-
-
-
+@login_required(login_url="/users/loginpage/")
 def transaction_delete(request):
     if request.method == 'DELETE':
         data = json.loads(request.body)
@@ -243,10 +251,7 @@ def transaction_delete(request):
         return JsonResponse({'status': 'deleted', 'keyword_id': transaction_id})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
-
-
-
-
+@login_required(login_url="/users/loginpage/")
 def keyword_insert(request):
 
     if request.method == "POST":
@@ -264,6 +269,7 @@ def keyword_insert(request):
 
     return render(request, 'trans/keyword.html', { 'category_list' : category_list})
 
+@login_required(login_url="/users/loginpage/")
 def keyword_all(request):
     keywords = categorization.objects.all()
     keywords_dic =[]
@@ -272,6 +278,7 @@ def keyword_all(request):
 
     return JsonResponse(keywords_dic, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def keyword_delete(request):
     if request.method == 'DELETE':
         data = json.loads(request.body)
@@ -288,6 +295,7 @@ def keyword_delete(request):
         return JsonResponse({'status': 'deleted', 'keyword_id': keyword_id})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+@login_required(login_url="/users/loginpage/")
 def keyword_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -304,6 +312,7 @@ def keyword_update(request):
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+@login_required(login_url="/users/loginpage/")
 def keyword_category_get(request):
     category_list = categories_table.objects.all()
     category_options = []
@@ -312,6 +321,7 @@ def keyword_category_get(request):
 
     return JsonResponse(category_options, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def keyword_category_update(request):
     if request.method =='PUT':
         data = json.loads(request.body)

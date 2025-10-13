@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .models import Accounts, Bank
 from django.http import JsonResponse
 import json
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 accounts = ['Chequing', ' Saving', 'Credit']
@@ -34,6 +35,7 @@ for bank in banks_in_canada:
     if not Bank.objects.filter(Bank=bank).exists():
         Bank.objects.create(Bank=bank)
 
+@login_required(login_url="/users/loginpage/")
 def add_account(request):
 
     if request.method == "POST":
@@ -56,7 +58,7 @@ def add_account(request):
     Banks = Bank.objects.all()
     return render(request, 'account/account.html',{'Banks':Banks, 'accounts':accounts})
 
-
+@login_required(login_url="/users/loginpage/")
 def get_accounts(request):
     accounts = Accounts.objects.all()
     accounts_list = []
@@ -66,6 +68,7 @@ def get_accounts(request):
         print()
     return JsonResponse(accounts_list, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def bank_get(request):
     Banks = Bank.objects.all()
     bank_list = []
@@ -73,9 +76,11 @@ def bank_get(request):
         bank_list.append(bank.Bank)
     return JsonResponse(bank_list, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def accounttype_get(request):
     return JsonResponse(accounts, safe=False)
 
+@login_required(login_url="/users/loginpage/")
 def accountname_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -89,6 +94,7 @@ def accountname_update(request):
         return JsonResponse({'status': 'updated'})
     return JsonResponse({"error":"invalid method"})
 
+@login_required(login_url="/users/loginpage/")
 def accounttype_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -102,6 +108,7 @@ def accounttype_update(request):
         return JsonResponse({'status': 'updated'})
     return JsonResponse({"error":"invalid method"})
 
+@login_required(login_url="/users/loginpage/")
 def accountnumber_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -115,6 +122,7 @@ def accountnumber_update(request):
         return JsonResponse({'status': 'updated'})
     return JsonResponse({"error":"invalid method"})
 
+@login_required(login_url="/users/loginpage/")
 def bank_update(request):
     if request.method == 'PUT':
         data = json.loads(request.body)
@@ -129,6 +137,7 @@ def bank_update(request):
         return JsonResponse({'status': 'updated'})
     return JsonResponse({"error":"invalid method"})
 
+@login_required(login_url="/users/loginpage/")
 def delete_accounts(request):
     if request.method == 'DELETE':
         data = json.loads(request.body)
