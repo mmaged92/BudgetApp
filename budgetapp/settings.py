@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'trans',
     'target',
     'expense',
-    'accounts'
+    'accounts',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

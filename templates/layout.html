@@ -22,62 +22,70 @@
 
     </head>
     <body>
-    <!-- Navbar -->
-<nav class="navbar navbar-expand-lg bg-body-tertiary bg-light">
-  <!-- Container wrapper -->
-  <div class="container">
-    <!-- Navbar brand -->
-      <img
-        src="media/logo.jpg"
-        height="60"
-        alt="Logo"
-        loading="lazy"
-        style="margin-top: -1px;"
-      />
-    <!-- Toggle button -->
-    <button
-      data-mdb-collapse-init
-      class="navbar-toggler"
-      type="button"
-      data-mdb-target="#navbarButtonsExample"
-      aria-controls="navbarButtonsExample"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
-      <i class="fas fa-bars"></i>
-    </button>
+          <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg bg-body-tertiary bg-light">
+    <!-- Container wrapper -->
+    <div class="container">
+        <!-- Navbar brand -->
+         <a href="/">
+        <img
+            src="/media/logo-nb.png"
+            height="60"
+            alt="Logo"
+            loading="lazy"
+            style="margin-top: -1px;"
+        /></a>
+        <!-- Toggle button -->
+        <button
+        data-mdb-collapse-init
+        class="navbar-toggler"
+        type="button"
+        data-mdb-target="#navbarButtonsExample"
+        aria-controls="navbarButtonsExample"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+        >
+        <i class="fas fa-bars"></i>
+        </button>
 
-    <!-- Collapsible wrapper -->
-    <div class="collapse navbar-collapse" id="navbarButtonsExample">
-      <!-- Left links -->
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link text-success" href="#">Dashboard</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-success" href="#">Contact</a>
-        </li>
-      </ul>
-      <!-- Left links -->
+        <!-- Collapsible wrapper -->
+         
+        <div class="collapse navbar-collapse" id="navbarButtonsExample">
+        <!-- Left links -->
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+            <a class="nav-link text-success" href="#">Home</a>
+            </li>
+          {%else%}
+            <li class="nav-item">
+            <a class="nav-link text-success" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link text-success" href="#">Contact</a>
+            </li>
+          {%endif%}
+        </ul>
+        <!-- Left links -->
 
-      <div class="d-flex align-items-center">
-        {% if user.is_authenticated %}
-        <form action="{% url 'logout' %}" method="post" style="display:inline;">
-          {% csrf_token %}
-          <button type="submit" data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Logout</button>
-        </form>
-        {% else %}
-          <a href="/loginpage" data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Login</a> 
-        {% endif %}
+        <div class="d-flex align-items-center">
+          {% if user.is_authenticated %}
+            <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Logout</button>
+            </form>
+            {% else %}
+            <a href="/loginpage" data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Login</a> 
+            {% comment %} {% endif %} {% endcomment %}
 
-        <a href="/register" data-mdb-ripple-init type="button" class="btn btn-primary me-3">Sign up for free</a>
-
-      </div>
+            <a href="/register" data-mdb-ripple-init type="button" class="btn btn-primary me-3">Sign up for free</a>
+            {%endif%}
+        </div>
+        </div>
+        <!-- Collapsible wrapper -->
     </div>
-    <!-- Collapsible wrapper -->
-  </div>
-  <!-- Container wrapper -->
-</nav>
+    <!-- Container wrapper -->
+    </nav>
         {% block content %}
 
         {% endblock %}
