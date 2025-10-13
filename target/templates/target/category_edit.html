@@ -1,0 +1,39 @@
+{%  extends "layout.html" %}
+
+{% block title %}target View{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+    <form action={% url 'category_add'%} method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="text" name='category'>
+        <button type='submit'>Enter New category</button>
+    </form>
+
+    {% comment %} <table border="1">
+        <tr>
+            <th>Category</th>
+        </tr>
+        {% for category in categories %}
+        <tr>
+            <td> {{category.categories_name}} </td>
+            <td> {{category.id}} </td>
+        </tr>
+        {% endfor %}
+
+    </table> {% endcomment %}
+
+    <button> <a href= "{% url 'target_insert' %}" style="text-decoration:none;"> Insert target</a></button>
+    <h1> Categories </h1>
+    <i class="fa-solid fa-trash" id = 'deleteallcategory'></i>
+    <div id="myGridcategories" style="height: 90vh"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+
+{% load static %}  
+<script src="{% static 'js/category.js' %}" defer></script>
+
+{% endblock %}

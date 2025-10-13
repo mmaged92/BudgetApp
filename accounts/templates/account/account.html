@@ -1,0 +1,51 @@
+{%  extends "layout.html" %}
+
+{% block title %}Account{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+    <form action ={% url 'add_account'%} method = 'post' enctype="multipart/form-data">
+        {%  csrf_token %}
+        <label> Select Bank </label>        
+        <select name='Bank_name'>
+            <option value=''>--Select Bank Account--</option>
+            {%for Bank in Banks %}
+                <option value = "{{Bank.Bank}}">{{Bank.Bank}}</option>
+            {% endfor %}
+        </select>
+        <label> Enter Account Type </label>
+        <select name='account_type'>
+            <option value=''>--Credit/Chequing/Saving-</option>
+            {%for account in accounts %}
+                <option value = "{{account}}">{{account}}</option>
+            {% endfor %}
+        </select>
+        <label>give your account a name</label>
+        <input type-'text' name = 'account_name'>
+        <label>Account Number</label>
+        <input type='number' name = 'account_number'>
+        <input type='hidden' name='input_type' value = 'insert_new_account'>
+        <button type = 'submit'> Insert Account</button>
+
+    </form>
+
+    <form action ={% url 'add_account'%} method = 'post' enctype="multipart/form-data">
+        {%  csrf_token %}
+        <label>can't find your bank</label>
+        <input type='text' name = 'Bank_new'>
+        <button type = 'submit'> Insert new Bank</button>
+        <input type='hidden' name='input_type' value = 'insert_new_bank'>
+
+    </form>
+
+    <h1>My Accounts</h1>
+    <i class="fa-solid fa-trash" id = 'deleteallaccounts'></i>
+    <div id="myGridaccounts" style="height: 90vh"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% load static %}
+<script src="{% static 'js/accounts.js' %}" defer></script>
+{% endblock %}

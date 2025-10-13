@@ -1,0 +1,96 @@
+{%  extends "layout.html" %}
+{% block title %}
+{% endblock %}
+
+
+{% block content %}
+    <div id="container">
+        <div id='main'>
+            <div id='about'>
+                <div>
+                    <img id="logo" src="media/unnamed.png" alt="logo" height="240">
+                </div>
+                <div>
+                    <div id="heading" class ="header-tittle--blue">
+
+                        $ Money<span  class="header-tittle--green">Nut</span><span class="header-tittle--black"> - Budget Traker</span>
+                        {% comment %} <span style="color:blue;">$ Money</span> <span style="color:green;">Nut</span><span> - Budget Traker</span> {% endcomment %}
+                    </div>
+
+                    <p id = "pm"style="margin-top: 0;">
+                            MoneyNut is your personal finance companion, designed to make budgeting simple and effective. 
+                            With MoneyNut, you can track your spending by uploading and categorizing expenses automatically, 
+                            set monthly budgets for each category, and monitor all your income streams in one place. 
+                            The app provides instant feedback to help you stay on, under, or over budget, while visual charts 
+                            and reports give you clear insights into your financial habits. Take the guesswork out of money 
+                            management—MoneyNut makes saving, budgeting, and planning for the future easier and more intuitive 
+                            than ever.
+                    </p>
+                </div>
+            </div>
+            <div id='more-about'>
+                <div id="p1">
+                    <img id="im1" src="media/1-photoroom.png" alt="logo" height="240">
+                    <p style="margin-top: 0;">
+                        Track ypur spending and monitor your expnes  
+                    </p>
+                </div>
+                <div id="p2">
+                    <img id="im1" src="media/2-photoroom.png" alt="logo" height="240">
+                    <p style="margin-top: 0;">
+                        Track ypur spending and monitor your expnes  
+                    </p>
+                </div>
+                <div id="p3">
+                    <img id="im1" src="media/3-photoroom.png" alt="logo" height="240">
+                    <p style="margin-top: 0;">
+                        Track ypur spending and monitor your expnes  
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% if not user.is_authenticated %}
+            <div id = 'sigin'>
+                <div>
+                    <div class="user_card">
+                        <div class="d-flex justify-content-center">
+                            <h3 id="form-title">LOGIN</h3>
+                        </div>
+                    <div class="d-flex justify-content-center form_container">
+                        <form method="POST" action="">
+                            {%  csrf_token %}
+                            <div class="input-group mb-3">
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                </div>
+                                <input type="text" name="username" placeholder="Username..." class="form-control">
+                            </div>
+                            <div class="input-group mb-2">
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                </div>
+                                    <input type="password" name="password" placeholder="Password..." class="form-control" >
+                            </div>
+
+                                <div class="d-flex justify-content-center mt-3 login_container">
+                                    <input class="btn login_btn" type="submit" value="Login">
+                                </div>
+                        </form>
+                        </form>
+
+                    </div>
+                        </div>
+                
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-center links" style="font-family: MV Boli;">
+                                Don't have an account? <a href="/register" class="ml-2">Sign Up</a>
+                            </div>
+                    
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}

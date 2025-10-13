@@ -1,0 +1,71 @@
+{%  extends "layout.html" %}
+
+{% block title %}transaction{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+    <form action={% url 'trans_page'%} method="post" enctype="multipart/form-data">
+        {%  csrf_token %}
+        <input type='file' name = 'file_path'>
+        <input type="hidden" name="input_type" value="file_upload">
+        <select id = 'card_type' name='card_type'>
+            <option value=''>--Debit/Credit--</option>
+            {%for card_type in card_types %}
+                <option value = "{{card_type}}">{{card_type}}</option>
+            {% endfor %}
+        </select>
+        <select id  = 'account_name' name ='account_name'>--Select Account Name--</option>
+            <option value=''>--Select Account Name--</option>
+            {%for account_name in account_names %}
+                <option value = "{{account_name.account_name}}">{{account_name.account_name}}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Upload</button> 
+    </form>
+
+    <form action={% url 'trans_page'%} method="post" enctype="multipart/form-data">
+        {%  csrf_token %}
+        <input type='text' name = 'description'>
+        <input type='date' name = 'date'>
+        <input type='number' name = 'amount'>
+        <select name='IO'>
+            <option value=''>--income/expense--</option>
+            {%for io in ios %}
+                <option value = "{{io}}">{{io}}</option>
+            {% endfor %}
+        </select>
+        <select name='category'>
+            <option value=''>--Select Category--</option>
+            {%for category in categories %}
+                <option value = "{{category.categories_name}}">{{category.categories_name}}</option>
+            {% endfor %}
+        </select>
+            {%for account in accounts %}
+                <option value = "{{account}}">{{account}}</option>
+            {% endfor %}
+        </select>
+        <select id = 'account_name' name ='account_name'>--Select Account Name--</option>
+            <option value=''>--Select Account Name--</option>
+            {%for account_name in account_names %}
+                <option value = "{{account_name.account_name}}">{{account_name.account_name}}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="input_type" value="single_entry">
+        <button type="submit">insert</button> 
+    </form>
+    <button><a href={% url 'keyword'%}>Insert keywords</a></button>
+
+    <h1>Transaction List</h1>
+    <i class="fa-solid fa-trash" id = 'deletealltrans'></i>
+    <div id="myGridtrans" style="height: 90vh"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+
+{% load static %}  
+<script src="{% static 'js/trans.js' %}" defer></script>
+
+{% endblock %}

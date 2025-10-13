@@ -1,0 +1,34 @@
+{%  extends "layout.html" %}
+
+{% block title %}Keywords{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+    <form action = {% url 'keyword'%} method = 'post'>
+        {% csrf_token %}
+        <label> Category Name</label>
+        <select name = 'category_id'>
+            <option value = ''>--select category--</option>
+            {% for category in category_list%}
+                <option value = {{category.id}}> {{category.categories_name}} </option>
+            {% endfor %}
+        </select>
+        <label> add new keyword </label>
+        <input type='text' name='new_keyword'>
+
+        <button type='submit'> Submit</button>
+    </form>
+    
+    <i class="fa-solid fa-trash" id = 'deleteall'></i>
+    <div id="myGrid" style="height: 90vh"></div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+{% load static %}  
+<script src="{% static 'js/keyword.js' %}" defer></script>
+
+{% endblock %}

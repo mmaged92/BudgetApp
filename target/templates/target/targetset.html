@@ -1,0 +1,67 @@
+{%  extends "layout.html" %}
+
+{% block title %}target{% endblock %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block content %}
+    <form action ={% url 'target_insert'%} method ='post'> 
+        {% csrf_token %}
+        <label for="frequency">frequency</label>
+        <select id = "id_frequency" name="frequency">
+                <option value="">-- Select frequency --</option>
+                <option value="monthly">monthly</option>
+                <option value="annually">annually</option>
+        </select>
+        <label for="year">year</label>
+        <select name="years">
+            <option value = ""> --Select year--</option>
+            {% for year in years%}
+                <option value = "{{year}}"> {{year}}</option>
+            {% endfor %}
+        </select>     
+        <dev id='month_input'>
+            <label for="month">month</label>
+            <select name="month">
+                <option value="">-- Select Month --</option>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+            </select>
+        </dev>
+        <label for="category">category</label>
+        <select name="categories">
+            <option value = ""> --Select Category--</option>
+            {% for category in categories %}
+                <option value = "{{category.categories_name}}"> {{category.categories_name}}</option>
+            {% endfor %}
+        </select>
+        <label for="amount">amount</label>
+        <input type="number" name='amount'>
+        <button type='submit'>Enter New Targety</button>
+    </form>
+
+    <h1>Budget Target Settings</h1>
+    <i class="fa-solid fa-trash" id = 'deletealltarget'></i>
+    <div id="myGridtarget" style="height: 90vh"></div>
+
+
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+
+{% load static %}
+<script src="{% static 'js/target.js' %}" defer></script>
+{% endblock %}
