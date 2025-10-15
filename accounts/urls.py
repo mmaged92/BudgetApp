@@ -3,6 +3,10 @@ from django.urls import path
 
 urlpatterns = [
     path('',views.add_account,name="add_account"),
+    path('add_bank/',views.add_bank,name="add_bank"),
+    path('add_bank/get_banks/',views.get_banks,name="get_banks"),
+    path('add_bank/update_banks/',views.update_banks,name="update_banks"),
+    path('add_bank/delete_banks/',views.delete_banks,name="delete_banks"),
     path('getaccounts/',views.get_accounts,name="get_accounts"),
     path('accountname_update/',views.accountname_update,name="accountname_update"),
     path('accounttype_update/',views.accounttype_update,name="accounttype_update"),

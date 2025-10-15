@@ -11,9 +11,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://kit.fontawesome.com/051f2923ab.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
-        
-        
+        <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>        
         
         
         {% block extra_head %}
@@ -21,78 +19,140 @@
         {% endblock %}
 
     </head>
-    <body>
-      
-          <!-- Navbar -->
+  <body>
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg bg-body-tertiary bg-light fixed-top">
-    <!-- Container wrapper -->
-    <div class="container-fluid">
-        <!-- Navbar brand -->
-         <a href="/">
-        <img
-            src="/media/logo-nb.png"
-            height="60"
-            alt="Logo"
-            loading="lazy"
-            style="margin-top: -1px;"
-        /></a>
-        <!-- Toggle button -->
-        <button
-        data-mdb-collapse-init
-        class="navbar-toggler"
-        type="button"
-        data-mdb-target="#navbarButtonsExample"
-        aria-controls="navbarButtonsExample"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-        >
-        <i class="fas fa-bars"></i>
-        </button>
-
-        <!-- Collapsible wrapper -->
-         
-        <div class="collapse navbar-collapse" id="navbarButtonsExample">
-        <!-- Left links -->
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <!-- Container wrapper -->
+      <div class="container-fluid">
+          <!-- Navbar brand -->
           {% if user.is_authenticated %}
-            <li class="nav-item">
-            <a class="nav-link text-success" href="#">Home</a>
-            </li>
-          {%else%}
-            <li class="nav-item">
-            <a class="nav-link text-success" href="/">Home</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link text-success" href="#">Contact</a>
-            </li>
-          {%endif%}
-        </ul>
-        <!-- Left links -->
-
-        <div class="d-flex align-items-center">
-          {% if user.is_authenticated %}
-            <form action="{% url 'logout' %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Logout</button>
-            </form>
+          <a href={% url 'dashboard' %}>
             {% else %}
-            <a href="{% url 'loginpage' %}"  data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Login</a> 
-            {% comment %} {% endif %} {% endcomment %}
-
-            <a href="/register" data-mdb-ripple-init type="button" class="btn btn-primary me-3">Sign up for free</a>
+          <a href="/">
             {%endif%}
-        </div>
-        </div>
-        <!-- Collapsible wrapper -->
-    </div>
-    <!-- Container wrapper -->
+          <img
+              src="/media/logo-nb.png"
+              height="60"
+              alt="Logo"
+              loading="lazy"
+              style="margin-top: -1px;"
+          /></a>
+          <!-- Toggle button -->
+          <button
+          data-mdb-collapse-init
+          class="navbar-toggler"
+          type="button"
+          data-mdb-target="#navbarButtonsExample"
+          aria-controls="navbarButtonsExample"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+          >
+          <i class="fas fa-bars"></i>
+          </button>
+
+          <!-- Collapsible wrapper -->
+          
+          <div class="collapse navbar-collapse" id="navbarButtonsExample">
+          <!-- Left links -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              {% if user.is_authenticated %}
+                <li class="nav-item">
+                <a class="nav-link text-success" href="#">Home</a>
+                </li>
+              {%else%}
+                <li class="nav-item">
+                <a class="nav-link text-success" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                <a class="nav-link text-success" href="#">Contact</a>
+                </li>
+              {%endif%}
+            </ul>
+            <!-- Left links -->
+
+            <div class="d-flex align-items-center">
+              {% if user.is_authenticated %}
+                <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'loginpage' %}"  data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Login</a> 
+                {% comment %} {% endif %} {% endcomment %}
+
+                <a href="/register" data-mdb-ripple-init type="button" class="btn btn-primary me-3">Sign up for free</a>
+                {%endif%}
+            </div>
+          </div>
+      </div>
     </nav>
-        {% block content %}
+      {% if user.is_authenticated %}
+        <div class="sidenav">
+          <img
+              src="/media/logo-nb.png"
+              height="60"
+              alt="Logo"
+              loading="lazy"
+              style="margin-top: -1px;"
+          />
+          <span >MoneyNuts</span>
 
-        {% endblock %}
+          <hr id="line">
+          <li class="mb-1"> 
+            <a href={% url 'dashboard' %}>DashBoard</a>
+          </li>
+          <li class="mb-1">       
+            <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#Reports-collapse" aria-expanded="true">
+              Reports
+              <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="collapse show" id="Reports-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li><a href="#" >Daily</a></li>
+                <li><a href="#" >Weekly</a></li>
+                <li><a href="#" >Monthly</a></li>
+                <li><a href="#" >Annually</a></li>
+                <li><a href="#" >YTD</a></li>
+              </ul>
+            </div>
+          </li>
+          <li class="mb-1">       
+            <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#Settings-collapse" aria-expanded="true">
+              Settings
+              <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="collapse show" id="Settings-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li><a href="{%url 'add_account'%}" >Add Account</a></li>
+                <li><a href="{%url 'category_add'%}" >Add Category</a></li>
+                <li><a href="{%url 'add_bank'%}" >Add Bank</a></li>
+                <li><a href="{%url 'keyword'%}" >Set Keywords</a></li>
+                <li><a href="{%url 'target_insert'%}" >Set Buget target</a></li>
+              </ul>
+            </div>
+          </li>
+          <li class="mb-1">       
+            <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#transactions-collapse" aria-expanded="true">
+              Transactions
+              <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="collapse show" id="transactions-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li><a href="{%url 'trans_page'%}" >Upload csv file</a></li>
+                <li><a href="{%url 'trans_page'%}" >Insert Single Entry</a></li>
+              </ul>
+            </div>
+          </li>
+        </div>
 
-        {% block extra_scripts %}
+      {%endif%}
+  <div class = "content">
+      {% block content %}
+
+      {% endblock %}
+  </div>
+      {% block extra_scripts %}
         
-        {% endblock %}
+      {% endblock %}
     </body>
 </html>

@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 class Bank(models.Model):
     Bank = models.CharField(max_length=255, null=True, blank=True)
+    user_id = models.IntegerField()
 
 class Accounts(models.Model):
     user_id = models.IntegerField()

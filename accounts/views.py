@@ -32,31 +32,77 @@ banks_in_canada = [
 
 
 for bank in banks_in_canada:
-    if not Bank.objects.filter(Bank=bank).exists():
-        Bank.objects.create(Bank=bank)
+    if not Bank.objects.filter(user_id = 1, Bank=bank).exists():
+        Bank.objects.create(user_id = 1, Bank=bank)
+        
 
 @login_required(login_url="/users/loginpage/")
 def add_account(request):
 
     if request.method == "POST":
-        input_type = request.POST.get('input_type')
-        if input_type == 'insert_new_account':
-            Bank_name = request.POST.get('Bank_name')
-            account_type = request.POST.get('account_type')
-            account_name = request.POST.get('account_name')
-            account_number = request.POST.get('account_number')
 
-            Bank_id = Bank.objects.get(Bank=Bank_name)
-            if not Accounts.objects.filter(user_id=1,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number):
-                Accounts.objects.create(user_id=1,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number)
-        if input_type == 'insert_new_bank':
-            Bank_new = request.POST.get('Bank_new')
-            if not Bank.objects.filter(Bank=Bank_new):
-                Bank.objects.create(Bank=Bank_new)
-        return redirect('add_account')  
+        Bank_name = request.POST.get('Bank_name')
+        account_type = request.POST.get('account_type')
+        account_name = request.POST.get('account_name')
+        account_number = request.POST.get('account_number')
+
+        Bank_id = Bank.objects.get(Bank=Bank_name)
+        if not Accounts.objects.filter(user_id=1,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number):
+            Accounts.objects.create(user_id=1,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number)
+            return redirect('add_account')
 
     Banks = Bank.objects.all()
     return render(request, 'account/account.html',{'Banks':Banks, 'accounts':accounts})
+
+
+@login_required(login_url="/users/loginpage/")
+def add_bank(request):
+    if request.method == "POST":
+        Bank_new = request.POST.get('Bank_new')
+        if not Bank.objects.filter(user_id = 1, Bank=Bank_new):
+            Bank.objects.create(user_id = 1, Bank=Bank_new)
+            return redirect('add_bank')  
+    return render(request, 'account/banks.html')
+
+Banks = Bank.objects.all()
+
+@login_required(login_url="/users/loginpage/")
+def get_banks(request):
+    Banks = Bank.objects.all()
+    bank_list = []
+    for bank in Banks:
+        bank_list.append({'Bank': bank.Bank, 'Bank_id':bank.id})
+    return JsonResponse(bank_list, safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def update_banks(request):
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        newvalue = data.get('newValue')
+        Bank_id = data.get('Bank_id')
+        print(newvalue)
+        print(Bank_id)
+        update = Bank.objects.get(id=Bank_id)
+        update.Bank = newvalue
+        update.save()
+        return JsonResponse({'status': 'updated'})
+    return JsonResponse({"error":"invalid method"})
+
+@login_required(login_url="/users/loginpage/")
+def delete_banks(request):
+    if request.method == 'DELETE':
+        data = json.loads(request.body)
+        Bank_id = data.get('BanK_id')
+        print(Bank_id)
+        try:
+            update = Bank.objects.get(id=Bank_id)
+            update.delete()
+        except:
+            for id in Bank_id:
+                update = Bank.objects.get(id=id)
+                update.delete()
+        return JsonResponse({'status': 'deleted'})
+    return JsonResponse({'error': 'Invalid method'}, status=405)   
 
 @login_required(login_url="/users/loginpage/")
 def get_accounts(request):
@@ -65,7 +111,6 @@ def get_accounts(request):
     for account in accounts:
         accounts_list.append({'Bank':account.Bank.Bank ,'account_type':account.account_type,'account_name':account.account_name,
                               'account_number':account.account_number, 'account_id':account.id})
-        print()
     return JsonResponse(accounts_list, safe=False)
 
 @login_required(login_url="/users/loginpage/")
