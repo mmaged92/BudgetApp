@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('',views.trans_add,name="trans_page"),
+    path('view/',views.trans_view,name="trans_view"),
     path('all/',views.trans_all,name="trans_all"),
     path('account_get/',views.Account_get,name="trans_account"),
     path('io_get/',views.IO_get,name="trans_io"),

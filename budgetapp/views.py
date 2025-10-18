@@ -24,6 +24,9 @@ def loginpage(request):
             return redirect("dashboard")
     else:
         form = AuthenticationForm()
+
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     return render(request, "loginpage.html" , {"form" : form })
 
 def register(request):
@@ -38,6 +41,9 @@ def register(request):
         else:
             print(form.errors)
             return redirect("register")
+        
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     
     context = {"form" : form }
     return render(request, "register.html" , context)

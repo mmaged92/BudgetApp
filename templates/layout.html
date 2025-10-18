@@ -20,8 +20,7 @@
 
     </head>
   <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg bg-body-tertiary bg-light fixed-top">
+<nav class="navbar navbar-expand-lg bg-body-tertiary bg-light fixed-top">
       <!-- Container wrapper -->
       <div class="container-fluid">
           <!-- Navbar brand -->
@@ -70,11 +69,20 @@
             </ul>
             <!-- Left links -->
 
-            <div class="d-flex align-items-center">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
               {% if user.is_authenticated %}
                 <form action="{% url 'logout' %}" method="post" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit" data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Logout</button>
+                  <div class="btn-group dropstart">
+                    <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="fa-regular fa-user"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      <li><a class="dropdown-item" href="#">Profile</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><button type="submit" data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Logout</button></li>
+                    </ul>
+                  </div>
                 </form>
                 {% else %}
                 <a href="{% url 'loginpage' %}"  data-mdb-ripple-init type="button" class="btn btn-link px-3 me-2 text-success">Login</a> 
@@ -88,18 +96,9 @@
     </nav>
       {% if user.is_authenticated %}
         <div class="sidenav">
-          <img
-              src="/media/logo-nb.png"
-              height="60"
-              alt="Logo"
-              loading="lazy"
-              style="margin-top: -1px;"
-          />
-          <span >MoneyNuts</span>
 
-          <hr id="line">
           <li class="mb-1"> 
-            <a href={% url 'dashboard' %}>DashBoard</a>
+            <a href={% url 'dashboard' %}  class="btn btn-toggle align-items-center rounded collapsed">DashBoard</a>
           </li>
           <li class="mb-1">       
             <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#Reports-collapse" aria-expanded="true">
@@ -138,19 +137,24 @@
             </button>
             <div class="collapse show" id="transactions-collapse">
               <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                <li><a href="{%url 'trans_page'%}" >Upload csv file</a></li>
-                <li><a href="{%url 'trans_page'%}" >Insert Single Entry</a></li>
+                <li><a href="{%url 'trans_page'%}" >Enter Transactions</a></li>
+                <li><a href="{%url 'trans_view'%}" >View Transactions</a></li>
               </ul>
             </div>
           </li>
+          
+          <div id="line-content">
+            <hr id="line">
+          </div>
         </div>
-
-      {%endif%}
-  <div class = "content">
+    <div class = "content">
+    {%else%}
+    <div>
+    {%endif%}
       {% block content %}
 
       {% endblock %}
-  </div>
+    </div>
       {% block extra_scripts %}
         
       {% endblock %}

@@ -6,31 +6,56 @@
 {% endblock %}
 
 {% block content %}
+<p class="heading " >Accounts</p>
+<div class="container justify-content-md-center">
     <form action ={% url 'add_account'%} method = 'post' enctype="multipart/form-data">
         {%  csrf_token %}
-        <label> Select Bank </label>        
-        <select name='Bank_name'>
-            <option value=''>--Select Bank Account--</option>
-            {%for Bank in Banks %}
-                <option value = "{{Bank.Bank}}">{{Bank.Bank}}</option>
-            {% endfor %}
-        </select>
-        <label> Enter Account Type </label>
-        <select name='account_type'>
-            <option value=''>--Credit/Chequing/Saving-</option>
-            {%for account in accounts %}
-                <option value = "{{account}}">{{account}}</option>
-            {% endfor %}
-        </select>
-        <label>give your account a name</label>
-        <input type-'text' name = 'account_name'>
-        <label>Account Number</label>
-        <input type='number' name = 'account_number'>
-        <button type = 'submit'> Insert Account</button>
+        <div class="row">
+            <div class="col-2">
+                <label> Select Bank </label>
+            </div>
+            <div class="col-4">      
+                <select name='Bank_name' style="width:100%">
+                    <option value=''>--Select Bank Account--</option>
+                    {%for Bank in Banks %}
+                        <option value = "{{Bank.Bank}}">{{Bank.Bank}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-2">
+                <label> Enter Account Type </label>
+            </div>
+            <div class="col-4">
+                <select name='account_type' style="width:100%">
+                    <option value=''>--Credit/Chequing/Saving-</option>
+                    {%for account in accounts %}
+                        <option value = "{{account}}">{{account}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <label>Account Name</label>
+            </div>    
+            <div class="col-4">
+                <input type-'text' name = 'account_name' style="width:100%">
+            </div>
+            <div class="col-2">
+                <label>Account Number</label>
+            </div>    
+            <div class="col-4">
+                <input type='number' name = 'account_number' style="width:100%" >
+            </div>
+        </div>
+        <div class="row justify-content-md-center" style="padding-top: 10px">
+            <div class = "col-2 justify-content-md-center">
+                <button type = 'submit' class="btn btn-success" > Insert Account</button>
+            </div>
+        </div>
     </form>
-
-    <h1>My Accounts</h1>
-    <i class="fa-solid fa-trash" id = 'deleteallaccounts'></i>
+</div>
+<div class="d-flex align-items-center"> <p class="heading mb-0 me-2">My Accounts</h1><i class="fa-solid fa-trash" id = 'deleteallaccounts'></i></div>
     <div id="myGridaccounts" style="height: 90vh"></div>
 {% endblock %}
 

@@ -6,53 +6,86 @@
 {% endblock %}
 
 {% block content %}
+<p class="heading " >Buget Settings</p>
+
+<div class="container justify-content-md-center">
     <form action ={% url 'target_insert'%} method ='post'> 
         {% csrf_token %}
-        <label for="frequency">frequency</label>
-        <select id = "id_frequency" name="frequency">
-                <option value="">-- Select frequency --</option>
-                <option value="monthly">monthly</option>
-                <option value="annually">annually</option>
-        </select>
-        <label for="year">year</label>
-        <select name="years">
-            <option value = ""> --Select year--</option>
-            {% for year in years%}
-                <option value = "{{year}}"> {{year}}</option>
-            {% endfor %}
-        </select>     
-        <dev id='month_input'>
-            <label for="month">month</label>
-            <select name="month">
-                <option value="">-- Select Month --</option>
-                <option value="January">January</option>
-                <option value="February">February</option>
-                <option value="March">March</option>
-                <option value="April">April</option>
-                <option value="May">May</option>
-                <option value="June">June</option>
-                <option value="July">July</option>
-                <option value="August">August</option>
-                <option value="September">September</option>
-                <option value="October">October</option>
-                <option value="November">November</option>
-                <option value="December">December</option>
-            </select>
-        </dev>
-        <label for="category">category</label>
-        <select name="categories">
-            <option value = ""> --Select Category--</option>
-            {% for category in categories %}
-                <option value = "{{category.categories_name}}"> {{category.categories_name}}</option>
-            {% endfor %}
-        </select>
-        <label for="amount">amount</label>
-        <input type="number" name='amount'>
-        <button type='submit'>Enter New Targety</button>
-    </form>
+        <div class="row">
+            <div class="col-2">
+                <label>frequency</label>
+            </div>
+            <div class="col-4">  
+                <select id = "id_frequency" name="frequency" style="width:100%">
+                        <option value="">-- Select frequency --</option>
+                        <option value="monthly">monthly</option>
+                        <option value="annually">annually</option>
+                </select>
+            </div>
+            <div class="col-2">
+                <label>year</label>
+            </div>
+            <div class="col-4">
+                <select name="years" style="width:100%">
+                    <option value = ""> --Select year--</option>
+                    {% for year in years%}
+                        <option value = "{{year}}"> {{year}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>     
+        <div class="row">
+            <div class="col-2">
+                <label>category</label>
+            </div>
+            <div class="col-4">
+                <select name="categories" style="width:100%">
+                    <option value = ""> --Select Category--</option>
+                    {% for category in categories %}
+                        <option value = "{{category.categories_name}}"> {{category.categories_name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-2">
+                <label>amount</label>
+            </div>
+            <div class="col-4">
+                <input type="number" name='amount' style="width:100%">
+            </div>
+        </div>
 
-    <h1>Budget Target Settings</h1>
-    <i class="fa-solid fa-trash" id = 'deletealltarget'></i>
+        <dev id='month_input'>
+            <dev class="row">
+                <div class="col-2">
+                    <label for="month">month</label>
+                </div>
+                <div class="col-4">
+                    <select name="month">
+                        <option value="">-- Select Month --</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
+            </dev>
+        </dev>
+        <div class="row justify-content-md-center" style="padding-top: 10px">
+            <div class = "col-2 justify-content-md-center">
+                <button type='submit' class = "btn btn-success">Enter New Targety</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="d-flex align-items-center"> <p class="heading mb-0 me-2">Budget Targets</h1><i class="fa-solid fa-trash" id = 'deletealltarget'></i></div>
     <div id="myGridtarget" style="height: 90vh"></div>
 
 

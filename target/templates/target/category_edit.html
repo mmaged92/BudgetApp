@@ -6,11 +6,23 @@
 {% endblock %}
 
 {% block content %}
-    <form action={% url 'category_add'%} method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="text" name='category'>
-        <button type='submit'>Enter New category</button>
-    </form>
+    <p class="heading " >Categories</p>
+    <div class="container justify-content-md-center">
+        <form action={% url 'category_add'%} method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row justify-content-md-center">
+                <div class="col-2 ">
+                    <label>Category Name</label>
+                </div>
+                <div class="col-2">
+                    <input type="text" name='category'>
+                </div>   
+            </div>
+            <div class="text-center" style="padding-top:10px">
+                    <button type = 'submit' class="btn btn-success ">Enter New category</button>
+            </div>
+        </form>
+    </div>
 
     {% comment %} <table border="1">
         <tr>
@@ -25,9 +37,8 @@
 
     </table> {% endcomment %}
 
-    <button> <a href= "{% url 'target_insert' %}" style="text-decoration:none;"> Insert target</a></button>
-    <h1> Categories </h1>
-    <i class="fa-solid fa-trash" id = 'deleteallcategory'></i>
+    <div class="d-flex align-items-center"> <p class="heading mb-0 me-2">My Categories</P> <i class="fa-solid fa-trash" id = 'deleteallcategory'></i></div>
+
     <div id="myGridcategories" style="height: 90vh"></div>
 {% endblock %}
 

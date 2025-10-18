@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
 import json
+from django.contrib import messages
+
 
 # file_path = 'C:/Users/mahmo/OneDrive/Desktop/Budget/keyword.csv'
 # with open(file_path, newline='', encoding='utf-8-sig' ) as csvfile:
@@ -36,10 +38,12 @@ def trans_add(request):
             account_name = request.POST.get('account_name')
             
             account_id = Accounts.objects.get(user_id = 1, account_name=account_name)
-
+            
             file_path = request.FILES['file_path']
+                  
             decoded_file = file_path.read().decode('utf-8').splitlines()
             reader = csv.DictReader(decoded_file)
+
             #print(file_path)
         # file_path = 'C:/Users/mahmo/OneDrive/Desktop/Budget/Scotia_Momentum_VISA_card_4023_092825.csv'
             try:
@@ -140,6 +144,10 @@ def trans_all(request):
                                   "Bank":transaction.Accounts_id.Bank.Bank,"category_id":transaction.category_id.id, "transaction_id":transaction.id, "Account_id":transaction.Accounts_id.id})
     return JsonResponse(transactions_list, safe=False)
 
+@login_required(login_url="/users/loginpage/")
+
+def trans_view(request):
+    return render(request, 'trans/view.html')
 
 @login_required(login_url="/users/loginpage/")
 def Account_get(request):
