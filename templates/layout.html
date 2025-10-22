@@ -142,7 +142,17 @@
               </ul>
             </div>
           </li>
-          
+          <li class="mb-1">       
+            <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#family-collapse" aria-expanded="true">
+              Family
+              <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="collapse show" id="family-collapse">
+              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                <li><a href="{%url 'family_view'%}" >Add Family</a></li>
+              </ul>
+            </div>
+          </li>
           <div id="line-content">
             <hr id="line">
           </div>

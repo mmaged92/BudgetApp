@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+from family.models import family
 
 # Create your models here.
 class years(models.Model):
@@ -10,13 +12,15 @@ class months(models.Model):
     year_id = models.ForeignKey(years, on_delete=models.CASCADE)
 
 class categories_table(models.Model):
-    user_id = models.IntegerField()
+    user_id =  models.ForeignKey(User, on_delete=models.CASCADE)
     categories_name = models.CharField(max_length=255, null=True)
+    family_id = models.ForeignKey(family, on_delete=models.CASCADE, null=True, blank=True)
 
 class budget_target(models.Model):
-    user_id = models.IntegerField()
+    user_id =  models.ForeignKey(User, on_delete=models.CASCADE)
     frequency = models.CharField(max_length=255)
     month_id = models.ForeignKey(months,on_delete=models.CASCADE, null=True, blank=True)
     year_id = models.ForeignKey(years,on_delete=models.CASCADE)
     category_id = models.ForeignKey(categories_table,on_delete=models.CASCADE)
     target = models.FloatField()
+    family_id = models.ForeignKey(family, on_delete=models.CASCADE, null=True, blank=True)

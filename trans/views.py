@@ -26,9 +26,10 @@ accounts = ['Chequing', ' Saving', 'Credit']
 
 @login_required(login_url="/users/loginpage/")
 def trans_add(request):
-    end_date = datetime.today().date()
-    start_date = end_date - timedelta(days=15)
-    transactions = trans.objects.filter(date__range=(start_date, end_date)).order_by('-date')
+    user = request.user
+    # end_date = datetime.today().date()
+    # start_date = end_date - timedelta(days=15)
+    # transactions = trans.objects.filter(date__range=(start_date, end_date)).order_by('-date')
     
     if request.method == "POST":
         input_type = request.POST.get('input_type')
@@ -37,7 +38,7 @@ def trans_add(request):
             card_type = request.POST.get('card_type')
             account_name = request.POST.get('account_name')
             
-            account_id = Accounts.objects.get(user_id = 1, account_name=account_name)
+            account_id = Accounts.objects.get(user_id = user, account_name=account_name)
             
             file_path = request.FILES['file_path']
                   
@@ -56,11 +57,11 @@ def trans_add(request):
                         amount = row['Amount']
 
                         try:
-                            category = categorization.objects.get(keyword__contains=row['Description'])
-                            category = category.category_id
-                            # print(category)
+                            category_name = categorization.objects.get(user_id=user,keyword__contains=row['Description'])
+                            category = category_name.category_id
+                            print(category)
                         except Exception:
-                            print("doesn't exist need attention") # message here
+                            # message here
                             category = None      
 
                         try:
@@ -72,32 +73,32 @@ def trans_add(request):
 
                         if card_type == 'Credit' and amount < 0 and ('thank you' in row['Description'].lower() or 'payment' in row['Description'].lower()):
                             category = 'credit card payment'
-                            category = categories_table.objects.get(categories_name=category)
+                            category = categories_table.objects.get(user_id=user,categories_name=category)
                             IO = 'credit card payment'
                         elif card_type == 'Credit' and amount < 0:
                             category = 'refund or cashback'
-                            category = categories_table.objects.get(categories_name=category)
+                            category = categories_table.objects.get(user_id=user,categories_name=category)
                             IO = 'income'
                         elif card_type == 'Credit' and amount > 0:
                             IO = 'expense'
                         elif card_type == 'Debit' and ('visa' in row['Description'].lower() or 'mastercard' in row['Description'].lower()):
                             IO = 'expense'
                             category = 'credit card payment'
-                            category = categories_table.objects.get(categories_name=category)
+                            category = categories_table.objects.get(user_id=user,categories_name=category)
                         elif card_type == 'Debit' and amount < 0:
                             IO = 'expense'
                         else:
                             IO = 'income'
 
-                      
-                        if not trans.objects.filter(user_id=1,description=row['Description'],date=row['Date'],amount=abs(amount), category_id = category, IO = IO, Accounts_id= account_id).exists():
-                            trans.objects.create(user_id=1,description=row['Description'],date=row['Date'],amount=abs(amount), category_id = category, IO = IO, Accounts_id= account_id)
+                        if not trans.objects.filter(user_id=user,description=row['Description'],date=row['Date'],amount=abs(amount)).exists():
+                            trans.objects.create(user_id=user,description=row['Description'],date=row['Date'],amount=abs(amount), category_id = category, IO = IO, Accounts_id= account_id)
 
             except FileNotFoundError:
                 print("file not found")
             
             
         if input_type =='single_entry':  
+            user = request.user
             description = request.POST.get('description')
             date = request.POST.get('date')
             amount = request.POST.get('amount')
@@ -105,22 +106,23 @@ def trans_add(request):
 
             account_name = request.POST.get('account_name')
 
-            account_id = Accounts.objects.get(account_name=account_name)
+            account_id = Accounts.objects.get(user_id=user,account_name=account_name)
             IO = request.POST.get('IO')
             try:
-                category = categories_table.objects.get(categories_name=category)
+                category = categories_table.objects.get(user_id=user,categories_name=category)
                 # print(category)
             except Exception:
-                print("doesn't exist need attention") # message here
+                pass
+                #print("doesn't exist need attention") # message here
                 category = None
-            if not trans.objects.filter(user_id=1, description=description,date=date,amount=amount, category_id = category, IO = IO, Accounts_id=account_id).exists():
-                trans.objects.create(user_id=1,description=description,date=date,amount=amount, category_id = category, IO = IO, Accounts_id=account_id)
+            if not trans.objects.filter(user_id=user, description=description,date=date,amount=amount, category_id = category, IO = IO, Accounts_id=account_id).exists():
+                trans.objects.create(user_id=user,description=description,date=date,amount=amount, category_id = category, IO = IO, Accounts_id=account_id)
 
             
-    categories = categories_table.objects.all()
-    account_names = Accounts.objects.filter(user_id=1)
+    categories = categories_table.objects.filter(user_id=user)
+    account_names = Accounts.objects.filter(user_id=user)
 
-    return render(request, 'trans/trans.html', {'transactions': transactions, 'card_types': card_types, 'categories':categories, 'ios':ios, 'account_names':account_names})
+    return render(request, 'trans/trans.html', {'card_types': card_types, 'categories':categories, 'ios':ios, 'account_names':account_names})
 
 @login_required(login_url="/users/loginpage/")
 def trans_edit(request):
@@ -129,7 +131,8 @@ def trans_edit(request):
 
 @login_required(login_url="/users/loginpage/")
 def trans_all(request):
-    transactions = trans.objects.all()
+    user = request.user
+    transactions = trans.objects.filter(user_id=user)
     transactions_list = []
     for transaction in transactions:
         if transaction.category_id == None:
@@ -151,7 +154,8 @@ def trans_view(request):
 
 @login_required(login_url="/users/loginpage/")
 def Account_get(request):
-    accounts = Accounts.objects.all()
+    user = request.user
+    accounts = Accounts.objects.filter(user_id=user)
     account_list = []
     for account in accounts:
         account_list.append(account.account_name)
@@ -200,6 +204,7 @@ def amount_update(request):
 
 @login_required(login_url="/users/loginpage/")
 def category_update(request):
+    user=request.user
     if request.method =='PUT':
         data = json.loads(request.body)
         category_id = data.get('category_id')
@@ -207,7 +212,7 @@ def category_update(request):
         transaction_id = data.get('transaction_id')
 
         update_value = trans.objects.get(id=transaction_id)
-        new_category_id = categories_table.objects.get(categories_name=new_value)
+        new_category_id = categories_table.objects.get(user_id=user,categories_name=new_value)
         update_value.category_id = new_category_id
         update_value.save()
         return JsonResponse({'status': 'updated', 'new_value': new_value})
@@ -215,6 +220,7 @@ def category_update(request):
 
 @login_required(login_url="/users/loginpage/")
 def IO_update(request):
+    
     if request.method =='PUT':
         data = json.loads(request.body)
         new_value = data.get('new_value')
@@ -229,13 +235,14 @@ def IO_update(request):
 @login_required(login_url="/users/loginpage/")
 def account_update(request):
     if request.method =='PUT':
+        user = request.user
         data = json.loads(request.body)
         Account_id = data.get('Account_id')
         new_value = data.get('new_value')
         transaction_id = data.get('transaction_id')
 
         update_value = trans.objects.get(id=transaction_id)
-        new_account_id = Accounts.objects.get(account_name=new_value)
+        new_account_id = Accounts.objects.get(user_id=user,account_name=new_value)
         update_value.Accounts_id = new_account_id
         update_value.save()
         return JsonResponse({'status': 'updated', 'new_value': new_value})
@@ -261,25 +268,26 @@ def transaction_delete(request):
 
 @login_required(login_url="/users/loginpage/")
 def keyword_insert(request):
-
+    user = request.user
     if request.method == "POST":
         keyword = request.POST.get('new_keyword')
         category_id = request.POST.get('category_id')
         if keyword and category_id:
             category_id = categories_table.objects.get(id=category_id)
-            if not categorization.objects.filter(user_id=1,keyword=keyword, category_id = category_id):    
-                categorization.objects.create(user_id=1,keyword=keyword, category_id = category_id)
+            if not categorization.objects.filter(user_id=user,keyword=keyword, category_id = category_id).exists():    
+                categorization.objects.create(user_id=user,keyword=keyword, category_id = category_id)
         else:
             print("error") # insert message error
 
 
-    category_list = categories_table.objects.all()
+    category_list = categories_table.objects.filter(user_id=user)
 
     return render(request, 'trans/keyword.html', { 'category_list' : category_list})
 
 @login_required(login_url="/users/loginpage/")
 def keyword_all(request):
-    keywords = categorization.objects.all()
+    user = request.user
+    keywords = categorization.objects.filter(user_id=user)
     keywords_dic =[]
     for keyword in keywords:
         keywords_dic.append({"keyword_id":keyword.id,"keyword":keyword.keyword, "category_id":keyword.category_id.id, "category":keyword.category_id.categories_name})
@@ -322,7 +330,8 @@ def keyword_update(request):
 
 @login_required(login_url="/users/loginpage/")
 def keyword_category_get(request):
-    category_list = categories_table.objects.all()
+    user = request.user
+    category_list = categories_table.objects.filter(user_id=user)
     category_options = []
     for category in category_list:
         category_options.append(category.categories_name)
@@ -331,13 +340,14 @@ def keyword_category_get(request):
 
 @login_required(login_url="/users/loginpage/")
 def keyword_category_update(request):
+    user = request.user
     if request.method =='PUT':
         data = json.loads(request.body)
         category_id = data.get('category_id')
         new_value = data.get('new_value')
         keyword_id = data.get('keyword_id')
         category_update = categorization.objects.get(id=keyword_id)
-        new_category_id = categories_table.objects.get(categories_name=new_value)
+        new_category_id = categories_table.objects.get(user_id=user,categories_name=new_value)
         category_update.category_id = new_category_id
         category_update.save()
         return JsonResponse({'status': 'updated', 'new_value': new_value})

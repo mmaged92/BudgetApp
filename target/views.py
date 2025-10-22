@@ -42,17 +42,18 @@ category_list = ['housing',
                     'credit card payment',
                     'refund or cashback']
 
-# file_path_years = 'C:/Users/mahmo/OneDrive/Desktop/Budget/years.csv'
+# # file_path_years = 'C:/Users/mahmo/OneDrive/Desktop/Budget/years.csv'
 # file_path_months = 'C:/Users/mahmo/OneDrive/Desktop/Budget/months.csv'
-# with open(file_path_years, newline='', encoding='utf-8-sig') as csvfile:
-#     reader = csv.DictReader(csvfile)
-#     for row in reader:
-#         years.objects.create(years=row['year'])
+# # with open(file_path_years, newline='', encoding='utf-8-sig') as csvfile:
+# #     reader = csv.DictReader(csvfile)
+# #     for row in reader:
+# #         years.objects.create(years=row['year'])
 
 # with open(file_path_months, newline='', encoding='utf-8-sig') as csvfile:
 #     reader = csv.DictReader(csvfile)
 #     for row in reader:
-#         months.objects.create(month=row['month'], year_id=row['year_id'])
+#         year =  years.objects.get(id=row['year_id'])
+#         months.objects.create(month=row['month'], year_id=year)
 # ms= years.objects.all()
 
 
@@ -62,23 +63,24 @@ category_list = ['housing',
 
 @login_required(login_url="/users/loginpage/")
 def category_add(request):
-
+    user= request.user
     for category in category_list:
-        if not categories_table.objects.filter(user_id=1, categories_name=category).exists():
-            categories_table.objects.create(user_id=1,categories_name=category)
+        if not categories_table.objects.filter(user_id=user, categories_name=category).exists():
+            categories_table.objects.create(user_id=user,categories_name=category)
 
     if request.method == "POST":
         categories_new = request.POST.get('category')
         if categories_new: 
-            if not categories_table.objects.filter(user_id=1, categories_name__iexact=categories_new).exists():
-                categories_table.objects.create(user_id=1,categories_name=categories_new)
+            if not categories_table.objects.filter(user_id=user, categories_name__iexact=categories_new).exists():
+                categories_table.objects.create(user_id=user,categories_name=categories_new)
 
-    categories = categories_table.objects.exclude(categories_name__in=["credit card payment", "refund or cashback"])
+    categories = categories_table.objects.filter(user_id=user)
     return render(request, 'target/category_edit.html', {"categories":categories})
 
 @login_required(login_url="/users/loginpage/")
 def category_get(request):
-    categories = categories_table.objects.all()
+    user= request.user
+    categories = categories_table.objects.filter(user_id=user)
     category_list = []
     for category in categories:
         category_list.append({"Category":category.categories_name, "category_id":category.id})
@@ -86,12 +88,13 @@ def category_get(request):
 
 @login_required(login_url="/users/loginpage/")
 def category_update(request):
+    user= request.user
     if request.method == 'PUT':
         data = json.loads(request.body)
         newValue = data.get('new_value')
         category_id = data.get('category_id')
-        update = categories_table.objects.get(id=category_id)
-        if not categories_table.objects.filter(categories_name__iexact=newValue).exists():
+        update = categories_table.objects.get(user_id=user,id=category_id)
+        if not categories_table.objects.filter(user_id=user,categories_name__iexact=newValue).exists():
             update.categories_name = newValue
             update.save()
         return JsonResponse({'status': 'updated', 'newValue': newValue})
@@ -99,21 +102,23 @@ def category_update(request):
 
 @login_required(login_url="/users/loginpage/")
 def category_delete(request):
+    user= request.user
     if request.method == 'DELETE':
         data = json.loads(request.body)
         category_id = data.get('category_id')
         try:
-            update = categories_table.objects.get(id=category_id)
+            update = categories_table.objects.get(user_id=user,id=category_id)
             update.delete()
         except:
             for id in category_id:
-                update = categories_table.objects.get(id=id)
+                update = categories_table.objects.get(user_id=user,id=id)
                 update.delete()
         return JsonResponse({'status': 'deleted'})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
 @login_required(login_url="/users/loginpage/")
 def target_insert(request):
+    user= request.user
     if request.method == "POST":
         freq = request.POST.get('frequency')
         if not freq:
@@ -137,18 +142,18 @@ def target_insert(request):
         if not category:
             return
         else:
-            category = categories_table.objects.get(categories_name=category)
+            category = categories_table.objects.get(user_id=user,categories_name=category)
 
         amount = request.POST.get('amount')
         if not amount:
             return 
         
-        if not budget_target.objects.filter(user_id=1,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount).exists():
-            budget_target.objects.create(user_id=1,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
+        if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount).exists():
+            budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
             return redirect('target_insert')  
         
    
-    categories = categories_table.objects.exclude(categories_name__in=["credit card payment", "refund or cashback"])
+    categories = categories_table.objects.filter(user_id=user)
 
     return render(request, 'target/targetset.html',{"categories":categories, "years" : years_list})
 
@@ -157,6 +162,7 @@ def target_delete(request):
     if request.method == 'DELETE':
         data = json.loads(request.body)
         target_id = data.get('target_id')
+        print(target_id)
         try:
             update = budget_target.objects.get(id=target_id)
             update.delete()
@@ -169,7 +175,8 @@ def target_delete(request):
 
 @login_required(login_url="/users/loginpage/")
 def target_get(request):
-    targets = budget_target.objects.all()
+    user= request.user
+    targets = budget_target.objects.filter(user_id=user)
     target_list = []
     
     for target in targets:
@@ -187,6 +194,7 @@ def target_get(request):
 
 @login_required(login_url="/users/loginpage/")
 def year_update(request):
+    user= request.user
     if request.method == 'PUT':
         data = json.loads(request.body)
         newValue = data.get('newValue')
@@ -205,7 +213,7 @@ def year_update(request):
         monthnew = months.objects.get(year_id = yearnew, month = month)
         # print(monthnew.year_id.years)
 
-        update = budget_target.objects.get(id=target_id)
+        update = budget_target.objects.get(user_id=user,id=target_id)
         update.year_id = yearnew
         update.save()
         update.month_id = monthnew
@@ -215,6 +223,7 @@ def year_update(request):
 
 @login_required(login_url="/users/loginpage/")
 def month_update(request):
+    user= request.user
     if request.method == 'PUT':
         data = json.loads(request.body)
         newValue = data.get('newValue')
@@ -233,7 +242,7 @@ def month_update(request):
         monthnew = months.objects.get(year_id=year, month = newValue)
         # print(monthnew.year_id.years)
 
-        update = budget_target.objects.get(id=target_id)
+        update = budget_target.objects.get(user_id=user,id=target_id)
         update.month_id = monthnew
         update.save()
 
@@ -242,23 +251,25 @@ def month_update(request):
 
 @login_required(login_url="/users/loginpage/")
 def category_update_target(request):
+    user= request.user
     if request.method == 'PUT':
         data = json.loads(request.body)
         newValue = data.get('newValue')
         target_id = data.get('target_id')
-        newcategory = categories_table.objects.get(categories_name = newValue)
-        update = budget_target.objects.get(id=target_id)
+        newcategory = categories_table.objects.get(user_id=user,categories_name = newValue)
+        update = budget_target.objects.get(user_id=user,id=target_id)
         update.category_id = newcategory
         update.save()
         return JsonResponse({'status': 'modified'})
     return JsonResponse({'error':'Invalid method'}, status = 405)
 
 def target_update(request):
+    user= request.user
     if request.method == 'PUT':
         data = json.loads(request.body)
         newValue = data.get('newValue')
         target_id = data.get('target_id')
-        update = budget_target.objects.get(id=target_id)
+        update = budget_target.objects.get(user_id=user,id=target_id)
         update.target = newValue
         update.save()
         return JsonResponse({'status':'updated'})
@@ -266,6 +277,7 @@ def target_update(request):
 
 @login_required(login_url="/users/loginpage/")
 def freq_update(request):
+    user= request.user
     if request.method == 'PUT':
         data = json.loads(request.body)
         newValue = data.get('newValue')
@@ -273,12 +285,12 @@ def freq_update(request):
         year = data.get('year')
 
         if newValue == 'annually':
-            update = budget_target.objects.get(id=target_id)
+            update = budget_target.objects.get(user_id=user,id=target_id)
             update.month_id = None
             update.frequency = 'annually'
             update.save()
         else:
-            update = budget_target.objects.get(id=target_id)
+            update = budget_target.objects.get(user_id=user,id=target_id)
             year = years.objects.get(years=year)
             monthnew = months.objects.get(year_id=year, month = 'January')
             update.frequency = 'monthly'

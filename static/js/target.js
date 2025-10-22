@@ -49,8 +49,9 @@ async function confirm_delete_target(target_id) {
     // console.log(input) 
     const isConfirmed = confirm('are you sure?');
     if (!isConfirmed) return;
-
+    console.log(target_id)
     // const reqBody = {keyword_id}
+
     const response = await fetch('/target/targetinsert/delete', {
         method: 'DELETE',
         headers: {
@@ -59,7 +60,8 @@ async function confirm_delete_target(target_id) {
         },
         body: JSON.stringify({ target_id }),
     });
-    window.location.reload();
+
+
 }
 
 async function category_update_target(newValue, category_id, target_id) {
@@ -101,7 +103,7 @@ async function month_update(newValue, year, month_id, target_id, frequency) {
             "X-CSRFToken": getCookie("csrftoken"),
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({newValue, year, month_id, target_id, frequency}),
+        body: JSON.stringify({ newValue, year, month_id, target_id, frequency }),
     })
     window.location.reload();
 }
@@ -116,7 +118,7 @@ async function year_update(newValue, year_id, month, target_id) {
             "X-CSRFToken": getCookie("csrftoken"),
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({newValue, year_id, month, target_id}),
+        body: JSON.stringify({ newValue, year_id, month, target_id }),
     })
     window.location.reload();
 }
@@ -130,7 +132,7 @@ async function freq_update(newValue, target_id, year, month) {
             "X-CSRFToken": getCookie("csrftoken"),
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({newValue, target_id, year, month}),
+        body: JSON.stringify({ newValue, target_id, year, month }),
     })
     window.location.reload();
 }
@@ -169,14 +171,14 @@ async function initGrid() {
                 field: "year", filter: true, editable: true,
                 cellEditor: "agSelectCellEditor",
                 cellEditorParams: {
-                values: years
+                    values: years
                 }
             },
             {
                 field: "month", filter: true, editable: true,
                 cellEditor: "agSelectCellEditor",
                 cellEditorParams: {
-                values: months
+                    values: months
                 }
             },
             {
@@ -189,14 +191,15 @@ async function initGrid() {
                 }
             },
             { field: "target", filter: true, editable: true },
-            { field: "frequency", filter: true, editable: true,
+            {
+                field: "frequency", filter: true, editable: true,
                 cellEditor: "agSelectCellEditor",
                 cellEditorParams: {
-                values: freq
-                }                
+                    values: freq
+                }
             },
             { field: "category_id", hide: true },
-            { field: "target_id", hide: true },
+            { field: "target_id" },
             { field: "year_id", hide: true },
             { field: "month_id", hide: true },
             {
@@ -221,7 +224,7 @@ async function initGrid() {
                 tagert_update(params.newValue, params.data.target_id)
             }
             if (params.colDef.field === 'year') {
-                year_update(params.newValue, params.data.year_id, params.data.month, params.data.target_id )
+                year_update(params.newValue, params.data.year_id, params.data.month, params.data.target_id)
             }
             if (params.colDef.field === 'month') {
                 month_update(params.newValue, params.data.year, params.data.month_id, params.data.target_id, params.data.frequency)
