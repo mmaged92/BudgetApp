@@ -6,9 +6,17 @@ from .models import categories_table, budget_target
 from django.http import JsonResponse
 import json
 from django.contrib.auth.decorators import login_required
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 
-years_list = list(range(1990, 2055))
+month_dict = {
+    1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+    7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
+}
+
+
+years_list = list(range(2025, 2055))
 
 distribution = ['annually','monthly']
 category_list = ['housing', 
@@ -123,21 +131,6 @@ def target_insert(request):
         freq = request.POST.get('frequency')
         if not freq:
             return
-
-        year = request.POST.get('years')
-        if not year:
-            return
-        else:
-            year = years.objects.get(years=year)
-
-        month = request.POST.get('month')
-        if not month and freq == "annually":
-            month = None
-        elif month and freq == "monthly":
-            month = months.objects.get(year_id=year, month=month)
-        else:
-            return
-
         category = request.POST.get('categories')
         if not category:
             return
@@ -148,11 +141,68 @@ def target_insert(request):
         if not amount:
             return 
         
-        if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount).exists():
-            budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
-            return redirect('target_insert')  
         
-   
+        date = request.POST.get('date')
+        if not date:
+            return
+        else:
+            date_format = "%Y-%m-%d"
+            date_string= date
+            date = datetime.strptime(date_string, date_format)
+            current_year = date.year
+            current_month = date.month
+            
+        date_end = request.POST.get('date_end')
+        if not date_end:
+            return
+        else:
+            date_format = "%Y-%m-%d"
+            date_string= date_end
+            date_end = datetime.strptime(date_string, date_format)
+            end_year = date.year
+            end_month = date.month
+      
+        # month = request.POST.get('month')
+        # if not month and freq == "annually":
+        #     month = None
+        # elif month and freq == "monthly":
+        #     month = months.objects.get(year_id=year, month=month)
+        # else:
+        #     return\
+              
+        if freq == "monthly":
+            print(freq)
+            while(date<=date_end):
+                year = years.objects.get(years=current_year)
+                current_month = month_dict[current_month]
+                month = months.objects.get(year_id=year, month=current_month)
+                if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount).exists():
+                    budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
+                date = date + relativedelta(months=1)
+                current_year = date.year
+                current_month = date.month
+            return redirect("target_insert")    
+        elif freq == "annually":
+            while(date<=date_end):
+                year = years.objects.get(years=current_year)
+                month = None                
+                if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount).exists():
+                    budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
+                                            
+                date = date + relativedelta(years=1)
+                current_year = date.year
+            return redirect("target_insert")  
+        elif freq == "bi-weekly":
+            print(freq)
+            while(date<date_end):
+                year = years.objects.get(years=current_year)
+                current_month = month_dict[current_month]
+                month = months.objects.get(year_id=year, month=current_month)
+                budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
+                date = date + timedelta(days=14)
+                current_year = date.year
+                current_month = date.month
+            return redirect("target_insert")  
     categories = categories_table.objects.filter(user_id=user)
 
     return render(request, 'target/targetset.html',{"categories":categories, "years" : years_list})
@@ -170,7 +220,7 @@ def target_delete(request):
             for id in target_id:
                 update = budget_target.objects.get(id=id)
                 update.delete()
-        return JsonResponse({'status': 'deleted'})
+        return redirect('target_insert')
     return JsonResponse({'error': 'Invalid method'}, status=405)   
 
 @login_required(login_url="/users/loginpage/")

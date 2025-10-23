@@ -1,18 +1,18 @@
-function showhide() {
-    const freq = document.getElementById("id_frequency").value;
-    const monthly = document.getElementById("month_input");
+// function showhide() {
+//     const freq = document.getElementById("id_frequency").value;
+//     const monthly = document.getElementById("month_input");
 
-    if (freq === "monthly") {
-        monthly.style.display = "inline";
-    }
+//     if (freq === "monthly") {
+//         monthly.style.display = "inline";
+//     }
 
-    if (freq === "annually") {
-        monthly.style.display = "none";
-    }
+//     if (freq === "annually") {
+//         monthly.style.display = "none";
+//     }
 
-}
+// }
 
-document.getElementById('id_frequency').addEventListener('change', showhide)
+// document.getElementById('id_frequency').addEventListener('change', showhide)
 
 async function fetchcategories() {
 
@@ -60,8 +60,7 @@ async function confirm_delete_target(target_id) {
         },
         body: JSON.stringify({ target_id }),
     });
-
-
+    window.location.reload();
 }
 
 async function category_update_target(newValue, category_id, target_id) {
@@ -199,7 +198,7 @@ async function initGrid() {
                 }
             },
             { field: "category_id", hide: true },
-            { field: "target_id" },
+            { field: "target_id", hide: true },
             { field: "year_id", hide: true },
             { field: "month_id", hide: true },
             {

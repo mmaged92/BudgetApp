@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<p class="heading " >Buget Settings</p>
+<p class="heading " >Buget Tagret</p>
 
 <div class="container justify-content-md-center">
     <form action ={% url 'target_insert'%} method ='post'> 
@@ -18,23 +18,12 @@
             <div class="col-4">  
                 <select id = "id_frequency" name="frequency" style="width:100%">
                         <option value="">-- Select frequency --</option>
-                        <option value="monthly">monthly</option>
+                        <option value="bi-weekly">Bi-weekly</option>
+                        <option value="monthly">Monthly</option>
                         <option value="annually">annually</option>
+                        {% comment %} <option value="annually">Custom</option> {% endcomment %}
                 </select>
             </div>
-            <div class="col-2">
-                <label>year</label>
-            </div>
-            <div class="col-4">
-                <select name="years" style="width:100%">
-                    <option value = ""> --Select year--</option>
-                    {% for year in years%}
-                        <option value = "{{year}}"> {{year}}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>     
-        <div class="row">
             <div class="col-2">
                 <label>category</label>
             </div>
@@ -46,6 +35,23 @@
                     {% endfor %}
                 </select>
             </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <label>Start Date</label>
+            </div>
+            <div class="col-4">
+                <input type='date'name="date" style="width:100%">
+            </div>
+            <div class="col-2">
+                <label>End Date</label>
+            </div>
+            <div class="col-4">
+                <input type='date'name="date_end" style="width:100%">
+            </div>
+
+        </div>
+        <div class="row">
             <div class="col-2">
                 <label>amount</label>
             </div>
@@ -54,7 +60,7 @@
             </div>
         </div>
 
-        <dev id='month_input'>
+        {% comment %} <dev id='month_input'>
             <dev class="row">
                 <div class="col-2">
                     <label>month</label>
@@ -77,7 +83,7 @@
                     </select>
                 </div>
             </dev>
-        </dev>
+        </dev> {% endcomment %}
         <div class="row justify-content-md-center" style="padding-top: 10px">
             <div class = "col-2 justify-content-md-center">
                 <button type='submit' class = "btn btn-success">Enter New Targety</button>

@@ -15,3 +15,4 @@ class Accounts(models.Model):
     account_name = models.CharField(max_length=255, null=True, blank=True)   
     account_number = models.IntegerField() 
     family_id = models.ForeignKey(family, on_delete=models.CASCADE, null=True, blank=True)
+    account_balance = models.FloatField(null=True, blank=True)

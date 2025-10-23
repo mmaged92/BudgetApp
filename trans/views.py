@@ -27,9 +27,7 @@ accounts = ['Chequing', ' Saving', 'Credit']
 @login_required(login_url="/users/loginpage/")
 def trans_add(request):
     user = request.user
-    # end_date = datetime.today().date()
-    # start_date = end_date - timedelta(days=15)
-    # transactions = trans.objects.filter(date__range=(start_date, end_date)).order_by('-date')
+
     
     if request.method == "POST":
         input_type = request.POST.get('input_type')
@@ -121,6 +119,8 @@ def trans_add(request):
             
     categories = categories_table.objects.filter(user_id=user)
     account_names = Accounts.objects.filter(user_id=user)
+    
+       
 
     return render(request, 'trans/trans.html', {'card_types': card_types, 'categories':categories, 'ios':ios, 'account_names':account_names})
 
@@ -133,8 +133,20 @@ def trans_edit(request):
 def trans_all(request):
     user = request.user
     transactions = trans.objects.filter(user_id=user)
+    
     transactions_list = []
     for transaction in transactions:
+        description = transaction.description
+        try:
+            category_name = categorization.objects.get(user_id=user,keyword__contains=description)
+            category = category_name.category_id
+            transaction.category_id = category
+            transaction.save()
+        except Exception:
+            category = None   
+            transaction.category_id = None
+            transaction.save()  
+            
         if transaction.category_id == None:
             transactions_list.append({'Description': transaction.description, "Date": transaction.date, "Amount":transaction.amount, "IO":transaction.IO
                                   , "Bank":transaction.Accounts_id.account_name,"Category":'***********',
@@ -279,7 +291,19 @@ def keyword_insert(request):
         else:
             print("error") # insert message error
 
-
+    transactions = trans.objects.filter(user_id=user)
+    for transaction in transactions:
+        description = transaction.description
+        try:
+            category_name = categorization.objects.get(user_id=user,keyword__contains=description)
+            category = category_name.category_id
+            transaction.category_id = category
+            transaction.save()
+        except Exception:
+            category = None   
+            transaction.category_id = None
+            transaction.save()  
+        
     category_list = categories_table.objects.filter(user_id=user)
 
     return render(request, 'trans/keyword.html', { 'category_list' : category_list})
@@ -307,7 +331,19 @@ def keyword_delete(request):
             for id in keyword_id:
                 category_delete = categorization.objects.get(id=id)
                 category_delete.delete()
-
+        user = request.user
+        transactions = trans.objects.filter(user_id=user)
+        for transaction in transactions:
+            description = transaction.description
+            try:
+                category_name = categorization.objects.get(user_id=user,keyword__contains=description)
+                category = category_name.category_id
+                transaction.category_id = category
+                transaction.save()
+            except Exception:
+                category = None   
+                transaction.category_id = None
+                transaction.save()  
         return JsonResponse({'status': 'deleted', 'keyword_id': keyword_id})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
@@ -324,7 +360,21 @@ def keyword_update(request):
         category_update = categorization.objects.get(id=keyword_id)
         category_update.keyword = new_value
         category_update.save()
-
+        
+        user = request.user
+        transactions = trans.objects.filter(user_id=user)
+        for transaction in transactions:
+            description = transaction.description
+            try:
+                category_name = categorization.objects.get(user_id=user,keyword__contains=description)
+                category = category_name.category_id
+                transaction.category_id = category
+                transaction.save()
+            except Exception:
+                category = None   
+                transaction.category_id = None
+                transaction.save()  
+                
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
@@ -350,5 +400,20 @@ def keyword_category_update(request):
         new_category_id = categories_table.objects.get(user_id=user,categories_name=new_value)
         category_update.category_id = new_category_id
         category_update.save()
+        
+        user = request.user
+        transactions = trans.objects.filter(user_id=user)
+        for transaction in transactions:
+            description = transaction.description
+            try:
+                category_name = categorization.objects.get(user_id=user,keyword__contains=description)
+                category = category_name.category_id
+                transaction.category_id = category
+                transaction.save()
+            except Exception:
+                category = None   
+                transaction.category_id = None
+                transaction.save()  
+                
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)

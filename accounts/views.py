@@ -8,7 +8,7 @@ from django.shortcuts import render
 
 # Create your views here.
 
-accounts = ['Chequing', ' Saving', 'Credit']
+accounts = ['Chequing', ' Saving', 'Credit', 'line of credit', 'cash']
 
 banks_in_canada = [
     "Royal Bank of Canada (RBC)",
@@ -53,10 +53,11 @@ def add_account(request):
         account_type = request.POST.get('account_type')
         account_name = request.POST.get('account_name')
         account_number = request.POST.get('account_number')
+        account_balance = request.POST.get('account_balance')
 
         Bank_id = Bank.objects.get(Bank=Bank_name)
-        if not Accounts.objects.filter(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number):
-            Accounts.objects.create(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number)
+        if not Accounts.objects.filter(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number,account_balance=account_balance):
+            Accounts.objects.create(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number,account_balance=account_balance)
             return redirect('add_account')
 
     Banks = Bank.objects.filter(user_id=user)
@@ -122,7 +123,7 @@ def get_accounts(request):
     accounts_list = []
     for account in accounts:
         accounts_list.append({'Bank':account.Bank.Bank ,'account_type':account.account_type,'account_name':account.account_name,
-                              'account_number':account.account_number, 'account_id':account.id})
+                              'account_number':account.account_number,'account_balance':account.account_balance ,'account_id':account.id})
     return JsonResponse(accounts_list, safe=False)
 
 @login_required(login_url="/users/loginpage/")
@@ -180,6 +181,21 @@ def accountnumber_update(request):
         print(account_id)
         update = Accounts.objects.get(user_id=user,id=account_id)
         update.account_number = newvalue
+        update.save()
+        return JsonResponse({'status': 'updated'})
+    return JsonResponse({"error":"invalid method"})
+
+@login_required(login_url="/users/loginpage/")
+def accountbalance_update(request):
+    user = request.user
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        newvalue = data.get('newValue')
+        account_id = data.get('account_id')
+        print(newvalue)
+        print(account_id)
+        update = Accounts.objects.get(user_id=user,id=account_id)
+        update.account_balance = newvalue
         update.save()
         return JsonResponse({'status': 'updated'})
     return JsonResponse({"error":"invalid method"})

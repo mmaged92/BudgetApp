@@ -11,6 +11,7 @@ urlpatterns = [
     path('accountname_update/',views.accountname_update,name="accountname_update"),
     path('accounttype_update/',views.accounttype_update,name="accounttype_update"),
     path('accountnumber_update/',views.accountnumber_update,name="accountnumber_update"),
+    path('accountbalance_update/',views.accountbalance_update,name="accountbalance_update"),
     path('bank_update/',views.bank_update,name="bank_update"),
     path('bank_get/',views.bank_get,name="bank_get"),
     path('accounttype_get/',views.accounttype_get,name="accounttype_get"),
