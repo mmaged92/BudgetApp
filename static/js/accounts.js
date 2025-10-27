@@ -109,6 +109,22 @@ async function account_number_update(newValue, account_id) {
     window.location.reload();
 }
 
+async function Starting_balance_update(newValue, account_id) {
+    const isConfirmed = confirm('are you sure?');
+    if (!isConfirmed) return;
+
+    const response = await fetch('/accounts/accountbalancestart_update/', {
+        method: 'PUT',
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({newValue, account_id}),
+        
+    })
+
+    window.location.reload();
+}
 async function account_balance_update(newValue, account_id) {
     const isConfirmed = confirm('are you sure?');
     if (!isConfirmed) return;
@@ -174,6 +190,7 @@ async function initGrid() {
                 editable: true,
             },
             { field: "account_number", filter: true, editable: true },
+            { field: "Starting_balance", filter: true, editable: true },
             { field: "account_balance", filter: true, editable: true },
 
             { field: "account_id", hide: true },
@@ -201,6 +218,9 @@ async function initGrid() {
             }
             if (params.colDef.field === 'account_number') {
                 account_number_update(params.newValue, params.data.account_id)
+            }
+            if (params.colDef.field === 'Starting_balance') {
+                Starting_balance_update(params.newValue, params.data.account_id)
             }
             if (params.colDef.field === 'account_balance') {
                 account_balance_update(params.newValue, params.data.account_id)

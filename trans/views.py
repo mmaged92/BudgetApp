@@ -59,8 +59,8 @@ def trans_add(request):
                             category = category_name.category_id
                             print(category)
                         except Exception:
-                            # message here
-                            category = None      
+                            category_name = categories_table.objects.get(user_id=user,categories_name='unassigned')
+                            category = category_name  
 
                         try:
                             amount =float(amount)
@@ -108,11 +108,10 @@ def trans_add(request):
             IO = request.POST.get('IO')
             try:
                 category = categories_table.objects.get(user_id=user,categories_name=category)
-                # print(category)
             except Exception:
-                pass
-                #print("doesn't exist need attention") # message here
-                category = None
+                category_name = categories_table.objects.get(user_id=user,categories_name='unassigned')
+                category = category_name
+                  
             if not trans.objects.filter(user_id=user, description=description,date=date,amount=amount, category_id = category, IO = IO, Accounts_id=account_id).exists():
                 trans.objects.create(user_id=user,description=description,date=date,amount=amount, category_id = category, IO = IO, Accounts_id=account_id)
 
@@ -136,16 +135,6 @@ def trans_all(request):
     
     transactions_list = []
     for transaction in transactions:
-        description = transaction.description
-        try:
-            category_name = categorization.objects.get(user_id=user,keyword__contains=description)
-            category = category_name.category_id
-            transaction.category_id = category
-            transaction.save()
-        except Exception:
-            category = None   
-            transaction.category_id = None
-            transaction.save()  
             
         if transaction.category_id == None:
             transactions_list.append({'Description': transaction.description, "Date": transaction.date, "Amount":transaction.amount, "IO":transaction.IO
@@ -261,6 +250,20 @@ def account_update(request):
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
 @login_required(login_url="/users/loginpage/")
+def date_update(request):
+    if request.method =='PUT':
+        user = request.user
+        data = json.loads(request.body)
+        new_value = data.get('new_value')
+        transaction_id = data.get('transaction_id')
+
+        update_value = trans.objects.get(id=transaction_id)
+        update_value.date = new_value
+        update_value.save()
+        return JsonResponse({'status': 'updated', 'new_value': new_value})
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@login_required(login_url="/users/loginpage/")
 def transaction_delete(request):
     if request.method == 'DELETE':
         data = json.loads(request.body)
@@ -300,9 +303,7 @@ def keyword_insert(request):
             transaction.category_id = category
             transaction.save()
         except Exception:
-            category = None   
-            transaction.category_id = None
-            transaction.save()  
+            pass
         
     category_list = categories_table.objects.filter(user_id=user)
 
@@ -360,20 +361,6 @@ def keyword_update(request):
         category_update = categorization.objects.get(id=keyword_id)
         category_update.keyword = new_value
         category_update.save()
-        
-        user = request.user
-        transactions = trans.objects.filter(user_id=user)
-        for transaction in transactions:
-            description = transaction.description
-            try:
-                category_name = categorization.objects.get(user_id=user,keyword__contains=description)
-                category = category_name.category_id
-                transaction.category_id = category
-                transaction.save()
-            except Exception:
-                category = None   
-                transaction.category_id = None
-                transaction.save()  
                 
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
@@ -400,20 +387,6 @@ def keyword_category_update(request):
         new_category_id = categories_table.objects.get(user_id=user,categories_name=new_value)
         category_update.category_id = new_category_id
         category_update.save()
-        
-        user = request.user
-        transactions = trans.objects.filter(user_id=user)
-        for transaction in transactions:
-            description = transaction.description
-            try:
-                category_name = categorization.objects.get(user_id=user,keyword__contains=description)
-                category = category_name.category_id
-                transaction.category_id = category
-                transaction.save()
-            except Exception:
-                category = None   
-                transaction.category_id = None
-                transaction.save()  
                 
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)

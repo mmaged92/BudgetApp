@@ -136,6 +136,21 @@ async function freq_update(newValue, target_id, year, month) {
     window.location.reload();
 }
 
+async function date_update(newValue, target_id) {
+    const isConfirmed = confirm('are you sure?');
+    if (!isConfirmed) return;
+
+    const response = await fetch('/target/targetinsert/date_update', {
+        method: 'PUT',
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newValue, target_id}),
+    })
+    window.location.reload();
+}
+
 
 function getCookie(name) {
     let cookieValue = null;
@@ -197,6 +212,7 @@ async function initGrid() {
                     values: freq
                 }
             },
+            { field: "date", filter: true, editable: true },
             { field: "category_id", hide: true },
             { field: "target_id", hide: true },
             { field: "year_id", hide: true },
@@ -227,6 +243,9 @@ async function initGrid() {
             }
             if (params.colDef.field === 'month') {
                 month_update(params.newValue, params.data.year, params.data.month_id, params.data.target_id, params.data.frequency)
+            }
+            if (params.colDef.field === 'date') {
+                date_update(params.newValue, params.data.target_id)
             }
         }
 

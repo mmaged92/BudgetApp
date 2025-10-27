@@ -14,6 +14,7 @@ class months(models.Model):
 class categories_table(models.Model):
     user_id =  models.ForeignKey(User, on_delete=models.CASCADE)
     categories_name = models.CharField(max_length=255, null=True)
+    Fixed_fees = models.CharField(default=False)
     family_id = models.ForeignKey(family, on_delete=models.CASCADE, null=True, blank=True)
 
 class budget_target(models.Model):
@@ -23,4 +24,5 @@ class budget_target(models.Model):
     year_id = models.ForeignKey(years,on_delete=models.CASCADE)
     category_id = models.ForeignKey(categories_table,on_delete=models.CASCADE)
     target = models.FloatField()
+    date = models.DateField(null=True, blank=True)
     family_id = models.ForeignKey(family, on_delete=models.CASCADE, null=True, blank=True)

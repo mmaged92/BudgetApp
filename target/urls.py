@@ -16,8 +16,10 @@ urlpatterns = [
     path('targetinsert/category_update_target',views.category_update_target, name="category_update_target"),
     path('targetinsert/target_update',views.target_update, name="target_update"),
     path('targetinsert/freq_update',views.freq_update, name="freq_update"),
+    path('targetinsert/date_update',views.date_update, name="date_update"),
     path('targetinsert/monthget',views.monthget, name="monthget"),
     path('targetinsert/yearget',views.yearget, name="yearget"),
     path('targetinsert/freqget',views.freqget, name="yearget"),
+    path('fixed_fees_update/',views.fixed_fees_update, name="fixed_fees_update"),
 
 ]

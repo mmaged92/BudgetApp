@@ -15,10 +15,11 @@ month_dict = {
     7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"
 }
 
+fees_type = ["YES" , "NO"]
 
 years_list = list(range(2025, 2055))
 
-distribution = ['annually','monthly']
+distribution = ['annually','monthly', 'bi-weekly']
 category_list = ['housing', 
                  'utilities', 
                  'car payment', 
@@ -48,7 +49,8 @@ category_list = ['housing',
                     'clothes',
                     'sport',
                     'credit card payment',
-                    'refund or cashback']
+                    'refund or cashback',
+                    'unassigned']
 
 # # file_path_years = 'C:/Users/mahmo/OneDrive/Desktop/Budget/years.csv'
 # file_path_months = 'C:/Users/mahmo/OneDrive/Desktop/Budget/months.csv'
@@ -78,11 +80,20 @@ def category_add(request):
 
     if request.method == "POST":
         categories_new = request.POST.get('category')
+        fixed_fees = request.POST.get('fixed_fees')
+        print(fixed_fees)
+        if fixed_fees == "on":
+            fixed_fees = True
+        else:
+            fixed_fees = False
+        print(fixed_fees)
         if categories_new: 
             if not categories_table.objects.filter(user_id=user, categories_name__iexact=categories_new).exists():
-                categories_table.objects.create(user_id=user,categories_name=categories_new)
+                categories_table.objects.create(user_id=user,categories_name=categories_new,Fixed_fees=fixed_fees)
+        
+            return redirect("category_add")
 
-    categories = categories_table.objects.filter(user_id=user)
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','unassigned'])
     return render(request, 'target/category_edit.html', {"categories":categories})
 
 @login_required(login_url="/users/loginpage/")
@@ -91,7 +102,7 @@ def category_get(request):
     categories = categories_table.objects.filter(user_id=user)
     category_list = []
     for category in categories:
-        category_list.append({"Category":category.categories_name, "category_id":category.id})
+        category_list.append({"Category":category.categories_name, "fixed_fees": category.Fixed_fees, "category_id":category.id})
     return JsonResponse(category_list, safe=False)
 
 @login_required(login_url="/users/loginpage/")
@@ -107,6 +118,23 @@ def category_update(request):
             update.save()
         return JsonResponse({'status': 'updated', 'newValue': newValue})
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+@login_required(login_url="/users/loginpage/")
+def fixed_fees_update(request):
+    user= request.user
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        newValue = data.get('new_value')
+        print(newValue)
+        
+        category_id = data.get('category_id')
+        update = categories_table.objects.get(user_id=user,id=category_id)
+        if not categories_table.objects.filter(user_id=user,categories_name__iexact=newValue).exists():
+            update.Fixed_fees = newValue
+            update.save()
+        return JsonResponse({'status': 'updated', 'newValue': newValue})
+    return JsonResponse({'error': 'Invalid method'}, status=405)    
 
 @login_required(login_url="/users/loginpage/")
 def category_delete(request):
@@ -176,8 +204,8 @@ def target_insert(request):
                 year = years.objects.get(years=current_year)
                 current_month = month_dict[current_month]
                 month = months.objects.get(year_id=year, month=current_month)
-                if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount).exists():
-                    budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
+                if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount,date=date).exists():
+                    budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount,date=date)
                 date = date + relativedelta(months=1)
                 current_year = date.year
                 current_month = date.month
@@ -186,8 +214,8 @@ def target_insert(request):
             while(date<=date_end):
                 year = years.objects.get(years=current_year)
                 month = None                
-                if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount).exists():
-                    budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
+                if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount,date=date).exists():
+                    budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount,date=date)
                                             
                 date = date + relativedelta(years=1)
                 current_year = date.year
@@ -198,12 +226,13 @@ def target_insert(request):
                 year = years.objects.get(years=current_year)
                 current_month = month_dict[current_month]
                 month = months.objects.get(year_id=year, month=current_month)
-                budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount)
+                if not budget_target.objects.filter(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount,date=date).exists():
+                    budget_target.objects.create(user_id=user,frequency= freq, month_id=month,year_id=year,category_id=category,target=amount,date=date)
                 date = date + timedelta(days=14)
                 current_year = date.year
                 current_month = date.month
             return redirect("target_insert")  
-    categories = categories_table.objects.filter(user_id=user)
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback'])
 
     return render(request, 'target/targetset.html',{"categories":categories, "years" : years_list})
 
@@ -239,7 +268,7 @@ def target_get(request):
           
         target_list.append({'year': target.year_id.years, 'month':month, 'category':target.category_id.categories_name
                         ,'target':target.target, 'frequency':target.frequency, 'target_id':target.id, 'year_id':target.year_id.id,
-                        'month_id': month_id})            
+                        'month_id': month_id , 'date':target.date})            
     return JsonResponse(target_list, safe=False)
 
 @login_required(login_url="/users/loginpage/")
@@ -313,6 +342,7 @@ def category_update_target(request):
         return JsonResponse({'status': 'modified'})
     return JsonResponse({'error':'Invalid method'}, status = 405)
 
+@login_required(login_url="/users/loginpage/")
 def target_update(request):
     user= request.user
     if request.method == 'PUT':
@@ -321,6 +351,19 @@ def target_update(request):
         target_id = data.get('target_id')
         update = budget_target.objects.get(user_id=user,id=target_id)
         update.target = newValue
+        update.save()
+        return JsonResponse({'status':'updated'})
+    return JsonResponse({'error':'Invalid method'}, status = 405)
+
+@login_required(login_url="/users/loginpage/")
+def date_update(request):
+    user= request.user
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        newValue = data.get('newValue')
+        target_id = data.get('target_id')
+        update = budget_target.objects.get(user_id=user,id=target_id)
+        update.date = newValue
         update.save()
         return JsonResponse({'status':'updated'})
     return JsonResponse({'error':'Invalid method'}, status = 405)
