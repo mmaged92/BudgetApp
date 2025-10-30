@@ -50,7 +50,9 @@ category_list = ['housing',
                     'sport',
                     'credit card payment',
                     'refund or cashback',
-                    'unassigned']
+                    'transfer',
+                    'unassigned',
+                    'income']
 
 # # file_path_years = 'C:/Users/mahmo/OneDrive/Desktop/Budget/years.csv'
 # file_path_months = 'C:/Users/mahmo/OneDrive/Desktop/Budget/months.csv'
@@ -93,13 +95,13 @@ def category_add(request):
         
             return redirect("category_add")
 
-    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','unassigned'])
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','unassigned','transfer','income'])
     return render(request, 'target/category_edit.html', {"categories":categories})
 
 @login_required(login_url="/users/loginpage/")
 def category_get(request):
     user= request.user
-    categories = categories_table.objects.filter(user_id=user)
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','unassigned','transfer','income'])
     category_list = []
     for category in categories:
         category_list.append({"Category":category.categories_name, "fixed_fees": category.Fixed_fees, "category_id":category.id})
@@ -232,7 +234,7 @@ def target_insert(request):
                 current_year = date.year
                 current_month = date.month
             return redirect("target_insert")  
-    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback'])
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','unassigned','transfer','income'])
 
     return render(request, 'target/targetset.html',{"categories":categories, "years" : years_list})
 

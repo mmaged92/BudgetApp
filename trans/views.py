@@ -20,7 +20,7 @@ from django.contrib import messages
 #         category_id = categories_table.objects.get(id=row['category'])  
 #         categorization.objects.create(user_id=1, keyword=keyword, category_id = category_id)
 
-ios = ['income', 'expense', 'credit card payment', 'refund or cashback']
+ios = ['income', 'expense', 'credit card payment', 'refund or cashback', 'transfer']
 card_types = ['Credit' , 'Debit']
 accounts = ['Chequing', ' Saving', 'Credit']
 
@@ -83,10 +83,16 @@ def trans_add(request):
                             IO = 'expense'
                             category = 'credit card payment'
                             category = categories_table.objects.get(user_id=user,categories_name=category)
+                        elif card_type == 'Debit' and amount < 0 and 'transfer' in row['Description'].lower():
+                            IO = 'transfer'
+                            category = 'transfer'
+                            category = categories_table.objects.get(user_id=user,categories_name=category) 
                         elif card_type == 'Debit' and amount < 0:
                             IO = 'expense'
                         else:
                             IO = 'income'
+                            category = 'income'
+                            category = categories_table.objects.get(user_id=user,categories_name=category) 
 
                         if not trans.objects.filter(user_id=user,description=row['Description'],date=row['Date'],amount=abs(amount)).exists():
                             trans.objects.create(user_id=user,description=row['Description'],date=row['Date'],amount=abs(amount), category_id = category, IO = IO, Accounts_id= account_id)

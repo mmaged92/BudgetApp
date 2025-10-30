@@ -233,3 +233,12 @@ a.btn-toggle:hover {
 .ag-panel-title-bar {
     height: 50px;
 }
+
+.container-monthly-view{
+  display: flex;
+}
+
+.container-monthly-view div{
+  height: 500px;
+  width: 500px;
+}
