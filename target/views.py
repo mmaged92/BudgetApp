@@ -189,8 +189,7 @@ def target_insert(request):
             date_format = "%Y-%m-%d"
             date_string= date_end
             date_end = datetime.strptime(date_string, date_format)
-            end_year = date.year
-            end_month = date.month
+
       
         # month = request.POST.get('month')
         # if not month and freq == "annually":
