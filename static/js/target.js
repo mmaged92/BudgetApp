@@ -27,17 +27,6 @@ async function fetchData() {
     return target_list
 }
 
-async function fetchmonth() {
-    const reponse = await fetch('/target/targetinsert/monthget', { method: 'GET' });
-    const data = await reponse.json();
-    return data
-}
-
-async function fetchyears() {
-    const reponse = await fetch('/target/targetinsert/yearget', { method: 'GET' });
-    const data = await reponse.json();
-    return data
-}
 async function fetchfreq() {
     const reponse = await fetch('/target/targetinsert/freqget', { method: 'GET' });
     const data = await reponse.json();
@@ -92,35 +81,7 @@ async function tagert_update(newValue, target_id) {
     })
     window.location.reload();
 }
-async function month_update(newValue, year, month_id, target_id, frequency) {
-    const isConfirmed = confirm('are you sure?');
-    if (!isConfirmed) return;
 
-    const response = await fetch('/target/targetinsert/monthupdate', {
-        method: 'PUT',
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ newValue, year, month_id, target_id, frequency }),
-    })
-    window.location.reload();
-}
-
-async function year_update(newValue, year_id, month, target_id) {
-    const isConfirmed = confirm('are you sure?');
-    if (!isConfirmed) return;
-
-    const response = await fetch('/target/targetinsert/yearupdate', {
-        method: 'PUT',
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ newValue, year_id, month, target_id }),
-    })
-    window.location.reload();
-}
 async function freq_update(newValue, target_id, year, month) {
     const isConfirmed = confirm('are you sure?');
     if (!isConfirmed) return;
@@ -172,8 +133,7 @@ function getCookie(name) {
 
 async function initGrid() {
     const myCategoryList = await fetchcategories();
-    const months = await fetchmonth();
-    const years = await fetchyears();
+
     const freq = await fetchfreq();
     const gridOptions = {
 
@@ -182,18 +142,11 @@ async function initGrid() {
         columnDefs: [
 
             {
-                field: "year", filter: true, editable: true,
-                cellEditor: "agSelectCellEditor",
-                cellEditorParams: {
-                    values: years
-                }
+                field: "year", filter: true,
             },
             {
-                field: "month", filter: true, editable: true,
-                cellEditor: "agSelectCellEditor",
-                cellEditorParams: {
-                    values: months
-                }
+                field: "month", filter: true,
+
             },
             {
                 field: "category",
@@ -215,8 +168,6 @@ async function initGrid() {
             { field: "date", filter: true, editable: true },
             { field: "category_id", hide: true },
             { field: "target_id", hide: true },
-            { field: "year_id", hide: true },
-            { field: "month_id", hide: true },
             {
                 field: " ", cellRenderer: params => {
                     const deleteIcon = `<i class="fa-solid fa-trash"  onclick="confirm_delete_target(${params.data.target_id})"></i>`
@@ -237,12 +188,6 @@ async function initGrid() {
             }
             if (params.colDef.field === 'target') {
                 tagert_update(params.newValue, params.data.target_id)
-            }
-            if (params.colDef.field === 'year') {
-                year_update(params.newValue, params.data.year_id, params.data.month, params.data.target_id)
-            }
-            if (params.colDef.field === 'month') {
-                month_update(params.newValue, params.data.year, params.data.month_id, params.data.target_id, params.data.frequency)
             }
             if (params.colDef.field === 'date') {
                 date_update(params.newValue, params.data.target_id)
