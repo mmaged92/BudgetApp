@@ -1,20 +1,21 @@
+
 function showhide() {
     const new_bank_add = document.getElementById("new_bank_add");
-    if (new_bank_add.style.display ==="none"){
+    if (new_bank_add.style.display === "none") {
         new_bank_add.style.display = "inline";
     }
-    else{
+    else {
         new_bank_add.style.display = "none";
     }
 
 }
 
-function showhidefilter(){
+function showhidefilter() {
     const filter = document.getElementById("filter");
-    if(filter.style.display ==="none"){
+    if (filter.style.display === "none") {
         filter.style.display = "inline";
     }
-    else{
+    else {
         filter.style.display = "none";
     }
 }
@@ -22,7 +23,7 @@ function showhidefilter(){
 //fetch all transaction data
 async function fetchData() {
     try {
-        const response = await fetch('/trans/all'); 
+        const response = await fetch('/trans/all');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -30,7 +31,7 @@ async function fetchData() {
         return transaction_list;
     } catch (error) {
         console.error("Error fetching data:", error);
-        return []; 
+        return [];
     }
 }
 
@@ -230,18 +231,24 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+// function exportGridData() {
 
+//     gridOptions.gridApi.exportDataAsExcel();
+
+// }
 async function initGrid() {
     const myCategoryList = await fetchcategory();
     const myIOlist = await fetchio();
     const myAccountslist = await fetchaccounts();
+
+
 
     const gridOptions = {
 
         rowData: [],
 
         columnDefs: [
-            
+
             { field: "Description", filter: true, editable: true },
             { field: "Date", filter: true, editable: true },
             { field: "Amount", filter: true, editable: true },
@@ -254,27 +261,27 @@ async function initGrid() {
                     values: myCategoryList
                 }
             },
-            { 
-                field: "IO", 
-                filter: true, 
+            {
+                field: "IO",
+                filter: true,
                 editable: true,
                 cellEditor: "agSelectCellEditor",
                 cellEditorParams: {
                     values: myIOlist
-                } 
+                }
             },
-            { field: "Bank", filter: true},
-            { 
-                field: "Account Name", 
-                filter: true, 
+            { field: "Bank", filter: true },
+            {
+                field: "Account Name",
+                filter: true,
                 editable: true,
                 cellEditor: "agSelectCellEditor",
                 cellEditorParams: {
                     values: myAccountslist
                 }
             },
-            { field: "Account Number", filter: true},
-            { field: "Account Type", filter: true},
+            { field: "Account Number", filter: true },
+            { field: "Account Type", filter: true },
             { field: "category_id", hide: true },
             { field: "transaction_id", hide: true },
             { field: "Account_id", hide: true },
@@ -286,7 +293,8 @@ async function initGrid() {
             }
         ],
         rowSelection: {
-            mode: 'multiRow'
+            mode: 'multiRow',
+            copySelectedRows: true
         },
         onCellValueChanged: params => {
 
@@ -303,7 +311,7 @@ async function initGrid() {
                 IO_update(params.newValue, params.data.transaction_id)
             }
             if (params.colDef.field === 'Account Name') {
-                account_update(params.newValue,params.data.Account_id, params.data.transaction_id)
+                account_update(params.newValue, params.data.Account_id, params.data.transaction_id)
             }
 
             if (params.colDef.field === 'Category') {
@@ -313,12 +321,11 @@ async function initGrid() {
 
     }
 
-
     const myGridElement = document.querySelector('#myGridtrans');
     gridApi = agGrid.createGrid(myGridElement, gridOptions);
 
 
-    fetchData().then((transaction_list)=>{
+    fetchData().then((transaction_list) => {
         gridApi.setGridOption('rowData', transaction_list)
     });
 
@@ -328,6 +335,7 @@ initGrid();
 
 document.getElementById('deletealltrans').addEventListener('click', () => {
     const selectedData = gridApi.getSelectedRows().map(row => row.transaction_id);
-    console.log(selectedData); 
+    console.log(selectedData);
     confirm_delete(selectedData);
 });
+

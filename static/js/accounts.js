@@ -142,6 +142,23 @@ async function account_balance_update(newValue, account_id) {
     window.location.reload();
 }
 
+async function account_balance_date_update(newValue, account_id) {
+    const isConfirmed = confirm('are you sure?');
+    if (!isConfirmed) return;
+
+    const response = await fetch('/accounts/account_date_update/', {
+        method: 'PUT',
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({newValue, account_id}),
+        
+    })
+
+    window.location.reload();
+}
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -191,7 +208,8 @@ async function initGrid() {
             },
             { field: "account_number", filter: true, editable: true },
             { field: "Starting_balance", filter: true, editable: true },
-            { field: "account_balance", filter: true, editable: true },
+            { field: "account_balance_start_date", filter: true, editable: true},
+            { field: "account_balance", filter: true },
 
             { field: "account_id", hide: true },
             {
@@ -225,6 +243,9 @@ async function initGrid() {
             if (params.colDef.field === 'account_balance') {
                 account_balance_update(params.newValue, params.data.account_id)
             }
+            if (params.colDef.field === 'account_balance_start_date') {
+                account_balance_date_update(params.newValue, params.data.account_id)
+            }
         }
 
     }
@@ -246,3 +267,31 @@ document.getElementById('deleteallaccounts').addEventListener('click', () => {
     const selectedData = gridApi.getSelectedRows().map(row => row.account_id);
     confirm_delete_account(selectedData);
 });
+
+
+
+
+document.addEventListener('change', ()=>{
+    const account_type = document.getElementById('account_type').value;
+    const account_balance_date = document.getElementById("account_balance_date")
+    const account_number= document.getElementById("account_number")
+    const account_number_l= document.getElementById("account_number_l")
+
+    console.log(account_type) 
+    if(account_type == "Saving" || account_type == 'Chequing' || account_type == 'cash'){
+        account_balance_date.style.display = 'flex'
+    }
+    else{
+        account_balance_date.style.display = 'none'
+    }
+
+    if( account_type == "Saving" || account_type == 'Chequing' || account_type == 'Credit' || account_type == 'line of credit'){
+        account_number.style.display = 'flex'
+        account_number_l.style.display = 'flex'
+    }
+    else{
+        account_number.style.display = 'none'
+        account_number_l.style.display = 'none'
+    }
+
+})

@@ -13,7 +13,16 @@ urlpatterns = [
     path('monthly_view/spentvstarget/',views.spentvstarget, name="spentvstarget"),
     path('monthly_view/incomevsspent/',views.incomevsspent, name="incomevsspent"),
     path('monthly_view/savingvstarget/',views.savingvstarget, name="savingvstarget"),
-    path('annual_view',views.annual_view, name="annual_view"),
+    path('annual_view/annual_target_view',views.annual_target_view, name="annual_target_view"),
     path('annual_view/annual_get_target/',views.annual_get_target, name="annual_get_target"),
-
+    path('annual_view/annual_actual_view',views.annual_actual_view, name="annual_actual_view"),
+    path('annual_view/annual_get_actual/',views.annual_get_actual, name="annual_get_actual"),
+    path('annual_view/annual_spent/',views.annual_spent, name="annual_spent"),
+    path('annual_view/annual_target/',views.annual_target, name="annual_target"),
+    path('annual_view/annual_income/',views.annual_income, name="annual_income"),
+    path('annual_view/annual_saving/',views.annual_saving, name="annual_saving"),
+    path('annual_view/annual_saving_target/',views.annual_saving_target, name="annual_saving_target"),
+    path('annual_view/balance_track_annual/',views.balance_track_annual, name="balance_track_annual"),
+    path('monthly_view/balance_track_monthly/',views.balance_track_monthly, name="balance_track_monthly"),
+    path('dashboard/',views.dashboard_view, name="dashboard_view"),
 ]

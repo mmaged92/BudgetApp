@@ -5,10 +5,14 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.shortcuts import render
+from datetime import datetime, timedelta
+from trans.models import trans
+from django.db.models import Q, Sum
+
 
 # Create your views here.
 
-accounts = ['Chequing', ' Saving', 'Credit', 'line of credit', 'cash']
+accounts = ['Chequing', 'Saving', 'Credit', 'line of credit', 'cash']
 
 banks_in_canada = [
     "Royal Bank of Canada (RBC)",
@@ -48,17 +52,34 @@ def add_account(request):
             Bank.objects.create(user_id = user, Bank=bank)
             
     if request.method == "POST":
-
-        Bank_name = request.POST.get('Bank_name')
         account_type = request.POST.get('account_type')
+        Bank_name = request.POST.get('Bank_name')
         account_name = request.POST.get('account_name')
-        account_number = request.POST.get('account_number')
-        Starting_balance = request.POST.get('account_balance')
 
         Bank_id = Bank.objects.get(Bank=Bank_name)
-        if not Accounts.objects.filter(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number,Starting_balance=Starting_balance):
+        if account_type == 'Saving' or account_type == 'Chequing':
+            account_number = request.POST.get('account_number')
+            Starting_balance = request.POST.get('account_balance')
+            Starting_balance_date = request.POST.get('account_balance_date')
+            Accounts.objects.create(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number,Starting_balance=Starting_balance, Starting_balance_date=Starting_balance_date)
+            return redirect('add_account')        
+        
+        if  account_type == 'cash':
+            Starting_balance = request.POST.get('account_balance')
+            Starting_balance_date = request.POST.get('account_balance_date')           
+            account_number = ""
+            Accounts.objects.create(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name, Starting_balance=Starting_balance, Starting_balance_date=Starting_balance_date)
+            return redirect('add_account')        
+             
+        if  account_type == 'Credit' or account_type == 'line of credit':    
+            account_number = request.POST.get('account_number')
+            Starting_balance = ""
+            Starting_balance_date = ""
             Accounts.objects.create(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number,Starting_balance=Starting_balance)
-            return redirect('add_account')
+            return redirect('add_account')             
+        
+        
+    update_account_balance(user)
 
     Banks = Bank.objects.filter(user_id=user)
     return render(request, 'account/account.html',{'Banks':Banks, 'accounts':accounts})
@@ -123,7 +144,8 @@ def get_accounts(request):
     accounts_list = []
     for account in accounts:
         accounts_list.append({'Bank':account.Bank.Bank ,'account_type':account.account_type,'account_name':account.account_name,
-                              'account_number':account.account_number,'Starting_balance':account.Starting_balance ,'account_balance':account.Balance,'account_id':account.id})
+                              'account_number':account.account_number,'Starting_balance':account.Starting_balance ,'account_balance':account.Balance, 
+                              'account_balance_start_date':account.Starting_balance_date,'account_id':account.id})
     return JsonResponse(accounts_list, safe=False)
 
 @login_required(login_url="/users/loginpage/")
@@ -216,6 +238,27 @@ def accountbalance_update(request):
     return JsonResponse({"error":"invalid method"})
 
 @login_required(login_url="/users/loginpage/")
+def account_date_update(request):
+    user = request.user
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        newvalue = data.get('newValue')
+        account_id = data.get('account_id')
+        print(newvalue)
+        # newvalue = datetime.strptime(newvalue, "%Y-%m-%dT%H:%M:%S.%fZ")
+        # new_date = newvalue.strftime("%Y-%m-%d")
+        # print(new_date)
+        print(account_id)
+        if newvalue == "" or newvalue == None:
+            newvalue = None
+        update = Accounts.objects.get(user_id=user,id=account_id)
+        update.Starting_balance_date = newvalue
+        update.save()
+        print(update.Starting_balance_date)
+        return JsonResponse({'status': 'updated'})
+    return JsonResponse({"error":"invalid method"})
+
+@login_required(login_url="/users/loginpage/")
 def bank_update(request):
     user = request.user
     if request.method == 'PUT':
@@ -246,3 +289,35 @@ def delete_accounts(request):
                 update.delete()
         return JsonResponse({'status': 'deleted'})
     return JsonResponse({'error': 'Invalid method'}, status=405)   
+
+def update_account_balance(user):
+    accounts = Accounts.objects.filter(user_id=user, account_type__in = ['Chequing','Saving'])
+
+    account_balance = 0
+    
+    
+    for account in accounts:  
+        date = datetime(account.Starting_balance_date.year,account.Starting_balance_date.month,account.Starting_balance_date.day)
+        date_end= date.today()
+        account_balance = account.Starting_balance
+        while(date <= date_end):   
+            income = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account, IO ='income',
+                                                                              date=date)))['total'] or 0
+            transfer_in = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                                   IO='transfer-in', 
+                                                                                   date=date)))['total'] or 0
+            transfer_out = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                                    IO='transfer-out',
+                                                                                    date=date)))['total'] or 0
+        
+            expense = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                               IO='expense', 
+                                                                               date=date)))['total'] or 0
+                
+            account_balance = account_balance + income + transfer_in - transfer_out - expense           
+            date = date +timedelta(days=1)  
+        account.Balance = round(account_balance,2)
+        account.save()
+    
+    return 
+         

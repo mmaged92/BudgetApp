@@ -25,7 +25,7 @@
       <div class="container-fluid">
           <!-- Navbar brand -->
           {% if user.is_authenticated %}
-          <a href={% url 'dashboard' %}>
+          <a href={% url 'dashboard_view' %}>
             {% else %}
           <a href="/">
             {%endif%}
@@ -98,7 +98,7 @@
         <div class="sidenav">
 
           <li class="mb-1"> 
-            <a href={% url 'dashboard' %}  class="btn btn-toggle align-items-center rounded collapsed">DashBoard</a>
+            <a href={% url 'dashboard_view' %}  class="btn btn-toggle align-items-center rounded collapsed">DashBoard</a>
           </li>
           <li class="mb-1">       
             <button class="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#Reports-collapse" aria-expanded="true">
@@ -107,9 +107,9 @@
             </button>
             <div class="collapse show" id="Reports-collapse">
               <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                <li><a href="#" >Daily</a></li>
                 <li><a href="{%url 'monthly_view'%}" >Monthly</a></li>
-                <li><a href="{%url 'annual_view'%}" >Annually</a></li>
+                <li><a href="{%url 'annual_actual_view'%}" >Annually</a></li>
+                <li><a href="{%url 'annual_target_view'%}" >Annual Target</a></li>
               </ul>
             </div>
           </li>

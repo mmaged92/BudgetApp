@@ -6,46 +6,85 @@
 {% endblock %}
 
 {% block content %}
-    <p class="heading " >Categories</p>
-    <div class="container justify-content-md-center">
-        <form action={% url 'category_add'%} method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+
+<div class='row card-container'>
+    <div class = 'col-6'>
+        <div class = 'card-category'>
+            <p class="heading " >Sub Categories</p>
+                <div class ='row' >
+                    <form action={% url 'category_add'%} method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row justify-content-md-center">
+                            <div class="col-2">
+                                <label>Category Name</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="text" name='category' style="width: 100%";>
+                            </div>
+                            <div class="col-2">
+                                <label>Main Category</label>
+                            </div>
+                            <div class="col-2">
+                                <Select style="width: 100%;">
+                                    <option value=''> --Select main Category--</option>
+                                    {%for category in main_categories%}
+                                        <option value = {{category.category_name}}>{{category.category_name}}</option>
+                                    {% endfor %}
+                                </Select>
+                            </div>  
+                        </div> 
+                        <div class="row justify-content-md-center">
+                            <div class="col-2 ">
+                                <label>Is fixed fees?</label>
+                            </div>
+                            <div class="col-2">
+                                <input type="checkbox" name='fixed_fees'>
+                            </div>   
+                        </div>
+                        <div class="text-center" style="padding-top:10px">
+                            <button type = 'submit' class="btn btn-success ">Enter New category</button>
+                        </div>
+                    </form>
+                </div>
+        </div>
+    </div>
+    <div class = 'col-6'>
+        <div class = 'card-category'>
+            <p class="heading " >Main Categories</p>  
             <div class="row justify-content-md-center">
                 <div class="col-2 ">
                     <label>Category Name</label>
                 </div>
                 <div class="col-2">
-                    <input type="text" name='category'>
+                    <input type="text" id ='main-category-value'>
                 </div>
-                <div class="col-2 ">
-                    <label>Is fixed fees?</label>
-                </div>
-                 <div class="col-2">
-                    <input type="checkbox" name='fixed_fees'>
-                </div>   
             </div>
-            <div class="text-center" style="padding-top:10px">
-                    <button type = 'submit' class="btn btn-success ">Enter New category</button>
+            <div class="text-center" style="padding-top:60px">
+                <button type = 'submit' class="btn btn-success" id="sendButton">Enter New Main category</button>
             </div>
-        </form>
+        </div>
     </div>
+</div>
+<div class='row card-container'>
+   <div class = 'col-6'> 
+        <div class="card-table">
+            <div class="d-flex align-items-center"> <p class="heading mb-0 me-2">My Sub Categories</P> <i class="fa-solid fa-trash" id = 'deleteallcategory'></i></div>
+            <div id="myGridcategories" style="height: 790px"></div>
+        </div>
+   </div>
+   <div class = 'col-6'> 
+        <div class="card-table">
+            <div class="d-flex align-items-center"> <p class="heading mb-0 me-2">My Main Categories</P> <i class="fa-solid fa-trash" id = 'deleteallmaincategory'></i></div>
+            <div id="myGridmaincategories" style="height: 790px"></div>
+        </div>
+   </div>
+</div>
 
-    {% comment %} <table border="1">
-        <tr>
-            <th>Category</th>
-        </tr>
-        {% for category in categories %}
-        <tr>
-            <td> {{category.categories_name}} </td>
-            <td> {{category.id}} </td>
-        </tr>
-        {% endfor %}
 
-    </table> {% endcomment %}
 
-    <div class="d-flex align-items-center"> <p class="heading mb-0 me-2">My Categories</P> <i class="fa-solid fa-trash" id = 'deleteallcategory'></i></div>
+    
 
-    <div id="myGridcategories" style="height: 90vh"></div>
+
 {% endblock %}
 
 {% block extra_scripts %}

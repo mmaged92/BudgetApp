@@ -26,7 +26,6 @@ urlpatterns = [
     # path('', views.main, name="main"),
     path('', views.loginpage, name="loginpage"),
     path('register/', views.register, name="register"),
-    path('dashboard/', views.dashboard, name="dashboard"),
     path('logout/',views.logout_view, name="logout"),
     path('trans/',include('trans.urls')),
     path('target/', include('target.urls')),

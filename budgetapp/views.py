@@ -21,12 +21,12 @@ def loginpage(request):
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             login(request, form.get_user())
-            return redirect("dashboard")
+            return redirect("dashboard_view")
     else:
         form = AuthenticationForm()
 
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('dashboard_view')
     return render(request, "loginpage.html" , {"form" : form })
 
 def register(request):
@@ -35,7 +35,7 @@ def register(request):
         form = CreateUserForm(request.POST)
         if form.is_valid():
             login(request, form.save())
-            return redirect("dashboard")
+            return redirect("dashboard_view")
             #user = form.cleaned_data.get('username')
             #messages.success(request, " Account was created for " + user)
         else:
@@ -43,14 +43,12 @@ def register(request):
             return redirect("register")
         
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('dashboard_view')
     
     context = {"form" : form }
     return render(request, "register.html" , context)
 
-# @login_required()
-def dashboard(request):
-    return render(request,"dashboard.html")
+
 
 def logout_view(request):
      if request.method == "POST":

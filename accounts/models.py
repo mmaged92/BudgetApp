@@ -13,7 +13,8 @@ class Accounts(models.Model):
     Bank = models.ForeignKey(Bank, on_delete=models.CASCADE)
     account_type = models.CharField(max_length=255, null=True, blank=True)   # Debit/credit/saving
     account_name = models.CharField(max_length=255, null=True, blank=True)   
-    account_number = models.IntegerField() 
+    account_number = models.IntegerField(null=True, blank=True) 
     family_id = models.ForeignKey(family, on_delete=models.CASCADE, null=True, blank=True)
     Starting_balance = models.FloatField(null=True, blank=True)
+    Starting_balance_date = models.DateField(null=True, blank=True)
     Balance = models.FloatField(null=True, blank=True)

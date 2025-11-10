@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 from django.http import JsonResponse
 import json
 from saving.models import SavingTarget
-
+from accounts.models import Accounts
 year_list = list(range(2023,2055))
 
 month_list =['January', 'February', 'March','April','May','June','July','August','September','October','November','December']
@@ -129,7 +129,7 @@ def category_spent_pichart(user):
     category_spent=[]   
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
     date_start = datetime(year,month_no,1)
-    date_end = date_start + relativedelta(months=1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
     
     categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income'])
     Total_month_spent = category_spent_sum(user,None,date_start,date_end)
@@ -146,7 +146,7 @@ def category_pent_bar(user):
     category_spent=[]   
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
     date_start = datetime(year,month_no,1)
-    date_end = date_start + relativedelta(months=1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
     categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','trasnfer','income'])
     Total_month_spent = category_spent_sum(user,None,date_start,date_end)
     
@@ -162,7 +162,7 @@ def category_spent_bar_daily(user):
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
     date_start = datetime(year,month_no,1)
     date = date_start
-    date_end = date_start + relativedelta(months=1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
 
     while(date < date_end):    
         Total_daily_spent = round(spent_day_sum(user,category_view,date),2)
@@ -174,7 +174,11 @@ def category_spent_bar_daily(user):
 
 
 def income_calc(user,date_start,date_end):
-    return trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='income' ,date__range=(date_start, date_end))))['total']
+    income = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='income' ,date__range=(date_start, date_end))))['total'] or 0
+    transfer_in = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='transfer-in' ,date__range=(date_start, date_end))))['total'] or 0
+    transfer_out = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='transfer-out' ,date__range=(date_start, date_end))))['total'] or 0
+    income = income + transfer_in - transfer_out
+    return income
 
 def target_saving_calc(user,date_start,date_end):
     return SavingTarget.objects.aggregate(total=Sum('Saving_target',filter=Q(user_id=user, date__range=(date_start, date_end))))['total']
@@ -182,7 +186,7 @@ def target_saving_calc(user,date_start,date_end):
 def spentVstargetCalc(user):
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
     date_start = datetime(year,month_no,1)
-    date_end = date_start + relativedelta(months=1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
     print(date_start, date_start)
     target = category_target_sum(user,None,month,year)
     actual_spent = category_spent_sum(user,None,date_start,date_end)
@@ -193,7 +197,7 @@ def spentVstargetCalc(user):
 def incomeVsspentCalc(user):
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
     date_start = datetime(year,month_no,1)
-    date_end = date_start + relativedelta(months=1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
     income = income_calc(user,date_start,date_end)
     actual_spent = category_spent_sum(user,None,date_start,date_end)
     return [{"y": income, "label":"Income"} , {"y": actual_spent, "label":"Actual Spent" }]
@@ -202,7 +206,7 @@ def incomeVsspentCalc(user):
 def savingVstargetCalc(user):
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
     date_start = datetime(year,month_no,1)
-    date_end = date_start + relativedelta(months=1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
     income = income_calc(user,date_start,date_end)
     actual_spent = category_spent_sum(user,None,date_start,date_end)
     actual_saving = income - actual_spent
@@ -246,7 +250,7 @@ def get_target_calc(user):
         month = month_dict[month_no]
         month_title = month_dict_add[month_no]
         try:
-            target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user, month=month, year=year)))['total']
+            target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user, month=month, year=year)))['total'] or 0
         except Exception:
             target_total = 0
         category_dict[month_title] = target_total
@@ -262,6 +266,243 @@ def get_target_calc(user):
     
     
     return target_list
+
+def get_actual_calc(user):
+    
+    actual_list = []
+
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income'])        
+    
+    for category in categories:
+        category_dict = {"category": category.categories_name}
+        
+        for month_no in range(1,13):
+            date_start = datetime(year, month_no, 1)
+            date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+            month_title = month_dict_add[month_no]        
+
+            actual_total_month = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense',category_id=category ,date__range=(date_start, date_end))))['total'] or 0
+
+            category_dict[month_title] = round(actual_total_month,2)
+            
+        date_start = datetime(year, 1, 1)
+        date_end = datetime(year, 12, 1)
+
+        Category_actual_annual_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense',category_id=category ,date__range=(date_start, date_end))))['total'] or 0
+
+        category_dict['Total_Actual'] = round(Category_actual_annual_total,2)
+        
+        try:
+            Category_target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user,category_id = category.id, date__range=(date_start, date_end))))['total'] or 0
+            
+        except Exception:
+            Category_target_total = 0
+        category_dict['Total_Target'] = Category_target_total
+        
+        if "unassigned" == category.categories_name :
+            Status = "-"
+        elif Category_target_total > Category_actual_annual_total:
+            Status = "Under Budget"
+        elif Category_target_total < Category_actual_annual_total:
+            Status = "Over Budget"
+        else:
+            Status = "On Budget"
+            
+        category_dict['Status'] =  Status
+          
+        actual_list.append(category_dict)   
+    
+    
+    
+    category_dict = {"category": "Total"}    
+    for month_no in range(1,13):
+        date_start = datetime(year, month_no, 1)
+        date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+        month_title = month_dict_add[month_no]
+        actual_month_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user,IO='expense', date__range=(date_start, date_end))))['total'] or 0
+        category_dict[month_title] = round(actual_month_total,2)
+        
+        
+    date_start = datetime(year, 1, 1)
+    date_end = datetime(year, 12, 1)       
+    actual_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user,IO='expense', date__range=(date_start, date_end))))['total'] or 0    
+    category_dict['Total_Actual'] = round(actual_total,2)
+    
+    try:
+        target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user, year=year)))['total'] or 0
+            
+    except Exception:
+        target_total = 0
+    category_dict['Total_Target'] = target_total
+    
+
+    if target_total > actual_total:
+        Status = "Under Budget"
+    elif target_total < actual_total:
+        Status = "Over Budget"
+    else:
+        Status = "On Budget"
+            
+    category_dict['Status'] =  Status   
+    
+    actual_list.append(category_dict)  
+    
+    return actual_list
+
+def annual_spentCalc(user):
+    actual_list = []
+    for month_no in range(1,13):
+        date_start = datetime(year,month_no,1)
+        date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+        month_title = month_dict_add[month_no]
+        actual_spent = category_spent_sum(user,None,date_start,date_end)
+        actual_list.append({"label": month_title, "y":actual_spent})
+    return actual_list
+
+
+def annual_targetCalc(user):
+    target_list = []
+    for month_no in range(1,13):
+        month = month_dict[month_no]
+        month_title = month_dict_add[month_no]
+        target = category_target_sum(user,None,month,year)
+        target_list.append({"label": month_title, "y":target})
+    return target_list  
+
+def annual_incomeCalc(user):
+    income_list = []
+    for month_no in range(1,13):
+        date_start = datetime(year,month_no,1)
+        date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+        month_title = month_dict_add[month_no]
+        income = income_calc(user,date_start,date_end)
+        income_list.append({"label":month_title, "y": income} )
+    return income_list
+
+def annual_saving_targetCalc(user):
+    saving_target_list = []
+    for month_no in range(1,13):
+        date_start = datetime(year,month_no,1)
+        date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+        month_title = month_dict_add[month_no]
+        target_saving = target_saving_calc(user,date_start,date_end)
+        saving_target_list.append({"label":month_title, "y": target_saving} )       
+    return saving_target_list
+
+def annual_savingCalc(user):
+    saving_list = []
+    for month_no in range(1,13):
+        date_start = datetime(year,month_no,1)
+        date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+        month_title = month_dict_add[month_no]
+        income = income_calc(user,date_start,date_end) or 0
+        actual_spent = category_spent_sum(user,None,date_start,date_end) or 0 
+        actual_saving = income - actual_spent
+        if actual_saving <0:
+            actual_saving = 0
+        saving_list.append({"label": month_title, "y": actual_saving} )    
+    return saving_list
+
+def monthly_balance_tracker(user):
+    accounts = Accounts.objects.filter(user_id=user, account_type__in = ['Chequing','Saving'])
+    accounts_balance = 0
+    account__balance_list = []
+    for month_no in range(1,13):
+        date_start = datetime(year,month_no,1)
+        date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+        month_title = month_dict_add[month_no]
+        for account in accounts:
+            
+            income = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account, IO ='income',
+                                                                              date__range=(date_start, date_end))))['total'] or 0
+            transfer_in = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                                   IO='transfer-in', 
+                                                                                   date__range=(date_start, date_end))))['total'] or 0
+            transfer_out = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                                    IO='transfer-out',
+                                                                                    date__range=(date_start, date_end))))['total'] or 0
+        
+            expense = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                               IO='expense', 
+                                                                               date__range=(date_start, date_end))))['total'] or 0    
+            
+            
+            accounts_balance = accounts_balance + income + transfer_in - transfer_out - expense
+            
+            
+            if date_start.month == account.Starting_balance_date.month :
+                accounts_balance = accounts_balance + account.Starting_balance
+            
+        
+        # print(month_title,previous_balance, accounts_balance , difference)  
+        account__balance_list.append({month_title: round(accounts_balance,2)} )
+    # print(account__balance_list[0])
+        
+    return account__balance_list
+
+
+
+def annual_balance_trackCalc(user):
+    account__balance_list = []
+    balances = monthly_balance_tracker(user)
+    month_no = 1
+    for month_no in range(1,13):
+        month_title = month_dict_add[month_no]
+        # print(balances[month_no-1][month_title])
+        accounts_balance = balances[month_no-1][month_title]
+        if month_no == 1:
+            previous_balance = accounts_balance
+        else:
+            month_no = month_no - 1 
+            month_title = month_dict_add[month_no]
+            previous_balance = balances[month_no-1][month_title]
+        Variance = accounts_balance - previous_balance
+            
+
+        account__balance_list.append({"label": month_title, "y": round(Variance,2)} )    
+    account__balance_list.append({"label": "Net Balance", "isCumulativeSum": True} ) 
+     
+    return account__balance_list
+
+def monthly_balance_trackCalc(user):
+    
+    accounts = Accounts.objects.filter(user_id=user, account_type__in = ['Chequing','Saving'])
+    monthly_accounts_balance = 0
+    monthly_account__balance_list = []
+    month_no = next(int(n) for n, m in month_dict.items() if m == month)
+    date_start = datetime(year,month_no,1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+    month_title = month_dict_add[month_no]
+    date = date_start
+    monthly_accounts_balance = monthly_balance_tracker(user)[month_no-2][month_dict_add[month_no-1]]
+    print(monthly_balance_tracker(user)[month_no-2])
+    print(monthly_accounts_balance)
+    while(date <= date_end):
+        for account in accounts:  
+           
+            income = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account, IO ='income',
+                                                                              date=date)))['total'] or 0
+            transfer_in = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                                   IO='transfer-in', 
+                                                                                   date=date)))['total'] or 0
+            transfer_out = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                                    IO='transfer-out',
+                                                                                    date=date)))['total'] or 0
+        
+            expense = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, Accounts_id =account,
+                                                                               IO='expense', 
+                                                                               date=date)))['total'] or 0
+                
+            monthly_accounts_balance = monthly_accounts_balance + income + transfer_in - transfer_out - expense
+            if date.month == account.Starting_balance_date.month and date.day == account.Starting_balance_date.day:
+                monthly_accounts_balance = monthly_accounts_balance + account.Starting_balance
+        
+        datedisplay = date.strftime("%b/%d")
+        monthly_account__balance_list.append({"label": datedisplay, "y": round(monthly_accounts_balance,2)})           
+        print(monthly_account__balance_list,monthly_account__balance_list )
+        date = date +timedelta(days=1)   
+         
+    return monthly_account__balance_list
 
 
 # Create your views here.
@@ -321,7 +562,7 @@ def category_spent_daily(request):
     return JsonResponse(category_spent_bar_daily(request.user), safe=False)
       
 @login_required(login_url="/users/loginpage/")
-def annual_view(request):
+def annual_target_view(request):
     user = request.user
     global year
     global date_start
@@ -330,7 +571,6 @@ def annual_view(request):
     if request.method == 'POST':
         year = request.POST.get('year')
         year = int(year)
-        month = request.POST.get('month')
         request.session["selected_year"] = year
     else:
         year = request.session.get("selected_year", year)
@@ -346,7 +586,7 @@ def annual_view(request):
         "categories":category_list,
         "selected_category":selected_category
     }  
-    return render(request, 'expense/annually.html', context)
+    return render(request, 'expense/annually_target.html', context)
 
 @login_required(login_url="/users/loginpage/")
 def annual_get_target(request):
@@ -380,6 +620,66 @@ def incomevsspent(request):
 def savingvstarget(request):
     return JsonResponse(savingVstargetCalc(request.user), safe=False)
 
+@login_required(login_url="/users/loginpage/")
+def annual_actual_view(request):
+    user = request.user
+    global year
+    global date_start
+    global date_end
+    year = date.today().year
+    if request.method == 'POST':
+        year = request.POST.get('year')
+        year = int(year)
+        request.session["selected_year"] = year
+    else:
+        year = request.session.get("selected_year", year)
+    
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income'])
+    category_list = ["Overall"]
+    for category in categories:
+        category_list.append(category.categories_name)
+    selected_category = request.session.get("selected_category", "Overall")
+    context = {
+        'years': year_list,
+        "selected_year": year,
+        "categories":category_list,
+        "selected_category":selected_category
+    }  
+    return render(request, 'expense/annually_actual.html', context)
 
+@login_required(login_url="/users/loginpage/")
+def annual_get_actual(request):
+    return JsonResponse(get_actual_calc(request.user), safe=False)
 
+@login_required(login_url="/users/loginpage/")
+def annual_spent(request):
+    return JsonResponse(annual_spentCalc(request.user), safe=False)
+    
+    
+@login_required(login_url="/users/loginpage/")
+def annual_target(request):
+    return JsonResponse(annual_targetCalc(request.user), safe=False)
+    
+    
+@login_required(login_url="/users/loginpage/")
+def annual_income(request):
+    return JsonResponse(annual_incomeCalc(request.user), safe=False)
 
+@login_required(login_url="/users/loginpage/")
+def annual_saving_target(request):
+    return JsonResponse(annual_saving_targetCalc(request.user), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def annual_saving(request):
+    return JsonResponse(annual_savingCalc(request.user), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def balance_track_annual(request):
+    return JsonResponse(annual_balance_trackCalc(request.user), safe=False)
+@login_required(login_url="/users/loginpage/")
+def balance_track_monthly(request):
+    return JsonResponse(monthly_balance_trackCalc(request.user), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def dashboard_view(request):
+    return render(request,"expense/dashboard.html")

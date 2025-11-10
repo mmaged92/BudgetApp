@@ -25,8 +25,8 @@
             <div class="col-2">
                 <label> Enter Account Type </label>
             </div>
-            <div class="col-4">
-                <select name='account_type' style="width:100%">
+            <div class="col-4" >
+                <select id = 'account_type' name='account_type' style="width:100%">
                     <option value=''>--Credit/Chequing/Saving-</option>
                     {%for account in accounts %}
                         <option value = "{{account}}">{{account}}</option>
@@ -41,19 +41,25 @@
             <div class="col-4">
                 <input type-'text' name = 'account_name' style="width:100%">
             </div>
-            <div class="col-2">
+            <div id = 'account_number_l'  class="col-2" >
                 <label>Account Number</label>
             </div>    
-            <div class="col-4">
+            <div id = 'account_number' class="col-4" >
                 <input type='number' name = 'account_number' style="width:100%" >
             </div>
         </div>
-        <div class="row" style="padding-top: 5px">
+        <div class="row" id = 'account_balance_date' style="padding-top: 5px">
             <div class="col-2">
                 <label>Account Starting Balance</label>
             </div>    
             <div class="col-4">
-                <input type-'number' name = 'account_balance' style="width:100%">
+                <input type='number' name = 'account_balance' style="width:100%">
+            </div>
+            <div class="col-2">
+                <label>Date Starting Balance</label>
+            </div>    
+            <div class="col-4">
+                <input type='date' name = 'account_balance_date' style="width:100%">
             </div>
         </div>
         <div class="row justify-content-md-center" style="padding-top: 10px">
