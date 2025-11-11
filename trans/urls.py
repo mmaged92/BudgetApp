@@ -7,6 +7,7 @@ urlpatterns = [
     path('all/',views.trans_all,name="trans_all"),
     path('account_get/',views.Account_get,name="trans_account"),
     path('io_get/',views.IO_get,name="trans_io"),
+    path('refresh_categorization/',views.refresh_categorization,name="refresh_categorization"),
     # path('refresh/',views.refresh,name="refresh"),
 
     path('descriptionupdate/',views.description_update,name="description_update"),

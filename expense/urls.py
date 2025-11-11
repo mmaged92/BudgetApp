@@ -25,4 +25,13 @@ urlpatterns = [
     path('annual_view/balance_track_annual/',views.balance_track_annual, name="balance_track_annual"),
     path('monthly_view/balance_track_monthly/',views.balance_track_monthly, name="balance_track_monthly"),
     path('dashboard/',views.dashboard_view, name="dashboard_view"),
+    path('dashboard/total_spent/',views.total_spent, name="total_spent"),
+    path('dashboard/current_balance/',views.current_balance, name="current_balance"),
+    path('dashboard/fixed_fees_remaining/',views.fixed_fees_remaining, name="fixed_fees_remaining"),
+    path('dashboard/this_month_status/',views.this_month_status, name="this_month_status"),
+    path('dashboard/spent_trend/',views.this_month_spent_trend, name="this_month_spent_trend"),
+    path('dashboard/this_month_spent_percentage/',views.this_month_spent_percentage, name="this_month_spent_percentage"),
+    path('dashboard/this_month_trans/',views.this_month_trans, name="this_month_trans"),
+    path('dashboard/this_month_spent_sub_categ_percentage_inverse/',views.this_month_spent_percentage_inverse, name="this_month_spent_percentage_inverse"),
+    path('dashboard/this_month_spent_sub_categ_percentage/',views.this_month_spent_sub_categ_percentage, name="this_month_spent_sub_categ_percentage"),
 ]

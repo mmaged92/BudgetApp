@@ -97,15 +97,16 @@ def category_add(request):
     if request.method == "POST":
         categories_new = request.POST.get('category')
         fixed_fees = request.POST.get('fixed_fees')
-        print(fixed_fees)
+        main_category_input = request.POST.get('main_category')
+        main_category_name = main_category.objects.get(user_id=user,category_name=main_category_input)
         if fixed_fees == "on":
             fixed_fees = True
         else:
             fixed_fees = False
-        print(fixed_fees)
+        
         if categories_new: 
-            if not categories_table.objects.filter(user_id=user, categories_name__iexact=categories_new).exists():
-                categories_table.objects.create(user_id=user,categories_name=categories_new,Fixed_fees=fixed_fees)
+            if not categories_table.objects.filter(user_id=user, categories_name__iexact=categories_new, main_category_id__iexact=categories_new).exists():
+                categories_table.objects.create(user_id=user,categories_name=categories_new,Fixed_fees=fixed_fees,main_category_id=categories_new)
         
             return redirect("category_add")
     main_categories =  main_category.objects.filter(user_id=user)
@@ -266,8 +267,6 @@ def target_get(request):
     target_list = []
     
     for target in targets:
-
-          
         target_list.append({'year': target.year, 'month':target.month, 'category':target.category_id.categories_name
                         ,'target':target.target, 'frequency':target.frequency, 'target_id':target.id
                         , 'date':target.date})            

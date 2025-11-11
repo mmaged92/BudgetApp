@@ -261,6 +261,7 @@ async function initGrid() {
                     values: myCategoryList
                 }
             },
+            { field: "Category_Main", filter: true },
             {
                 field: "IO",
                 filter: true,
@@ -337,5 +338,26 @@ document.getElementById('deletealltrans').addEventListener('click', () => {
     const selectedData = gridApi.getSelectedRows().map(row => row.transaction_id);
     console.log(selectedData);
     confirm_delete(selectedData);
+
 });
 
+
+
+document.getElementById('reloadpage').addEventListener('click', async () => {
+    refresh_page();
+    console.log('re')
+});
+
+
+
+async function refresh_page() {
+    const response = await fetch('/trans/refresh_categorization/', {
+        method: 'PUT',
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({'refresh':'refresh'}),
+    });
+    window.location.reload();
+}

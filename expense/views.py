@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q, Sum
 from trans.models import trans
-from target.models import budget_target, categories_table
+from target.models import budget_target, categories_table, main_category
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
@@ -9,6 +9,9 @@ from django.http import JsonResponse
 import json
 from saving.models import SavingTarget
 from accounts.models import Accounts
+from accounts.views import update_account_balance
+
+
 year_list = list(range(2023,2055))
 
 month_list =['January', 'February', 'March','April','May','June','July','August','September','October','November','December']
@@ -30,7 +33,9 @@ category_view ='Overall'
 def getMonthlyView(user):
     monthly_view=[]   
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
-    date_start = datetime(year,month_no,1)
+    print(month_no)
+    date_start = datetime(year,month_no,1) - timedelta(days=1)
+    print(date_start)
     date_end = date_start + relativedelta(months=1)
 
     categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income'])
@@ -41,21 +46,21 @@ def getMonthlyView(user):
         
         category_spent_total = category_spent_sum(user,category,date_start,date_end)
             
-        category_target_total = category_target_sum(user,category,month,year)
+        category_target_total = category_target_sum(user,category,date_start,date_end)
         if category.categories_name == 'unassigned':
             Remianing = 0
         else:
             Remianing = category_target_total - category_spent_total
         
-        status = budget_status(user,category,date_start,date_end, category_target_total,month,year, days_month)
+        status = budget_status(user,category,date_start,date_end, days_month)
 
         monthly_view.append({'category': category.categories_name,'Total_spent': category_spent_total , "Total_Target": category_target_total, "Remianing": round(Remianing,2), "Status": status})
 
     Total_month_spent = category_spent_sum(user,None,date_start,date_end)
     
-    Total_month_target = category_target_sum(user,None,month,year)
+    Total_month_target = category_target_sum(user,None,date_start,date_end)
     
-    month_status = budget_status(user,None,date_start,date_end, category_target_total,month,year, days_month)
+    month_status = budget_status(user,None,date_start,date_end, days_month)
     
 
     Total_ramaining = Total_month_target-Total_month_spent
@@ -63,12 +68,25 @@ def getMonthlyView(user):
     monthly_view.append({'category': "Monthly Total",'Total_spent': Total_month_spent , "Total_Target": Total_month_target, "Remianing": round(Total_ramaining,2), "Status": month_status})
     return monthly_view
 
-def category_spent_sum(user,category,date_start,date_end):
+def category_spent_sum(user,category,d_s,d_e):
     if category == None:
         category = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income'])
-        category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', date__range=(date_start, date_end),category_id__in=category)))['total']    
+        category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', date__range=(d_s, d_e),category_id__in=category)))['total']    
     else:
-        category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', category_id=category, date__range=(date_start, date_end))))['total']    
+        category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', category_id=category, date__range=(d_s, d_e))))['total']    
+    if category_spent_total == None:
+        category_spent_total = 0
+    else:
+        category_spent_total = round(category_spent_total,2)
+    
+    return round(category_spent_total,2)
+
+def category_main_spent_sum(user,category,d_s,d_e):
+    if category == None:
+        category = main_category.objects.filter(user_id=user)
+        category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', date__range=(d_s, d_e),main_category_id__in=category)))['total']    
+    else:
+        category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', main_category_id=category, date__range=(d_s, d_e))))['total']    
     if category_spent_total == None:
         category_spent_total = 0
     else:
@@ -90,12 +108,12 @@ def spent_day_sum(user,category,date):
     
     return round(category_spent_total,2)    
 
-def category_target_sum(user,category,month,year):
+def category_target_sum(user,category,d_s,d_e):
     category_target_total = 0
     if category == None:
-        category_target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user,month=month,year=year)))['total']
+        category_target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user,date__range=(d_s,d_e))))['total']
     else:    
-        category_target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user, category_id=category,month=month,year=year)))['total']
+        category_target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user, category_id=category,date__range=(d_s,d_e))))['total']
         
     if category_target_total == None:
         category_target_total = 0
@@ -103,26 +121,40 @@ def category_target_sum(user,category,month,year):
     return round(category_target_total,2)
 
 
-def budget_status(user,category,date_start,date_end, category_target_total,month,year, days_month):
+def budget_status(user,category,d_s,d_e, days_month):
+    print(d_s,d_e)
     if category == None:
         category = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income'])
-        spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense',category_id__in=category, category_id__Fixed_fees=False ,date__range=(date_start, date_end))))['total']
-        target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user, category_id__Fixed_fees=False, month=month,year=year)))['total']
+        spent_total =  category_spent_sum(user,None,d_s,d_e)
+        target_total =  category_target_sum(user,None,d_s,d_e)
+        category = ""
     else:
-        spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', category_id=category, category_id__Fixed_fees=False ,date__range=(date_start, date_end))))['total']
-        target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user, category_id=category, category_id__Fixed_fees=False, month=month,year=year)))['total']
-      
+        spent_total =  category_spent_sum(user,category,d_s,d_e)
+        target_total = category_target_sum(user,category,d_s,d_e)
+        category= category.categories_name
     if spent_total == None:
         spent_total = 0
     if target_total == None:
         target_total = 0
-                
-    if spent_total > category_target_total:
-        status = 'Over Budget'
-    elif (spent_total/int(datetime.today().strftime("%d")))  > (target_total/days_month) :
-        status = 'Over Spending'
+
+    target_No_FF_total =  budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user,category_id__Fixed_fees=False,date__range=(d_s,d_e))))['total'] or 0
+
+
+    if datetime.today() <= d_e:
+        days = datetime.today().day 
     else:
+        days = d_e.day
+    
+    if spent_total > target_total:
+        status = 'Over Budget'
+    elif spent_total == target_total:
         status = 'On Budget' 
+    elif (spent_total/int(days))  > (target_No_FF_total/days_month) :
+        status = 'Over Spending'
+    elif spent_total < target_total:
+        status = 'Under Budget' 
+        
+    print(category, spent_total, target_total, status)
     return status
 
 def category_spent_pichart(user):
@@ -131,15 +163,15 @@ def category_spent_pichart(user):
     date_start = datetime(year,month_no,1)
     date_end = date_start + relativedelta(months=1) - timedelta(days=1)
     
-    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income'])
-    Total_month_spent = category_spent_sum(user,None,date_start,date_end)
+    categories = main_category.objects.filter(user_id=user)
+    Total_month_spent = category_main_spent_sum(user,None,date_start,date_end)
     
     if Total_month_spent == 0:
         return category_spent.append({'y': 100, 'name': "categories_name"})
     
     for category in categories:   
-        category_month_spent_total = round(category_spent_sum(user,category,date_start,date_end)*100/Total_month_spent,2)
-        category_spent.append({'y': category_month_spent_total, 'name': category.categories_name})
+        category_month_spent_total = round(category_main_spent_sum(user,category,date_start,date_end)*100/Total_month_spent,2)
+        category_spent.append({'y': category_month_spent_total, 'name': category.category_name})
     return category_spent
 
 def category_pent_bar(user):
@@ -147,14 +179,14 @@ def category_pent_bar(user):
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
     date_start = datetime(year,month_no,1)
     date_end = date_start + relativedelta(months=1) - timedelta(days=1)
-    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','trasnfer','income'])
-    Total_month_spent = category_spent_sum(user,None,date_start,date_end)
+    categories = main_category.objects.filter(user_id=user)
+    Total_month_spent = category_main_spent_sum(user,None,date_start,date_end)
     
     if Total_month_spent == 0:
         return category_spent.append({'label': "categories_name",'y': 100 })
     for category in categories:   
-        category_month_spent_total = round(category_spent_sum(user,category,date_start,date_end),2)
-        category_spent.append({'label': category.categories_name,'y': category_month_spent_total })
+        category_month_spent_total = round(category_main_spent_sum(user,category,date_start,date_end),2)
+        category_spent.append({'label': category.category_name,'y': category_month_spent_total })
     return category_spent 
     
 def category_spent_bar_daily(user):
@@ -188,7 +220,7 @@ def spentVstargetCalc(user):
     date_start = datetime(year,month_no,1)
     date_end = date_start + relativedelta(months=1) - timedelta(days=1)
     print(date_start, date_start)
-    target = category_target_sum(user,None,month,year)
+    target = category_target_sum(user,None,date_start,date_end)
     actual_spent = category_spent_sum(user,None,date_start,date_end)
     
     return [{"y": target, "label":"Target"} , {"y": actual_spent, "label":"Actual Spent" }]
@@ -228,8 +260,8 @@ def get_target_calc(user):
             month = month_dict[month_no]
             month_title = month_dict_add[month_no]        
             try:
-                target = budget_target.objects.get(user_id=user,category_id = category.id, year=year , month = month)
-                target = target.target
+                target = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user,category_id = category.id, year=year , month = month)))['total'] or 0
+
             except Exception:
                 target = 0
             category_dict[month_title] = target
@@ -240,7 +272,7 @@ def get_target_calc(user):
             
         except Exception:
             Category_target_total = 0
-        category_dict['Total_Target'] = Category_target_total
+        category_dict['Total_Target'] = round(Category_target_total,2)
         target_list.append(category_dict)   
     
     
@@ -363,9 +395,12 @@ def annual_spentCalc(user):
 def annual_targetCalc(user):
     target_list = []
     for month_no in range(1,13):
+        
         month = month_dict[month_no]
         month_title = month_dict_add[month_no]
-        target = category_target_sum(user,None,month,year)
+        d_s = datetime(year,month_no,1)
+        d_e = date_start + relativedelta(months=1) - timedelta(days=1)
+        target = category_target_sum(user,None,d_s,d_e)
         target_list.append({"label": month_title, "y":target})
     return target_list  
 
@@ -504,6 +539,163 @@ def monthly_balance_trackCalc(user):
          
     return monthly_account__balance_list
 
+def total_spent_calc(user,year,month_no):
+    date_start = datetime(year,month_no,1)  
+    expense = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user,
+                                                                               IO='expense', 
+                                                                             date__gt=date_start)))['total'] or 0
+    sympol = "$"  
+    return f"{sympol}{expense:,.2f}"
+
+def current_balance_calc_dashboard(user):
+    total_accounts_balance = update_account_balance(user)
+    sympol = "$"  
+    return f"{sympol}{total_accounts_balance:,.2f}"
+
+def fixed_fees_remaining_calc(user,year, month_no):
+    date_start = datetime(year,month_no,1)  
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+    categories = categories_table.objects.filter(user_id=user, Fixed_fees=True) 
+    fixed_fees_remaining = 0
+    for category in categories:
+        print(category.categories_name)
+        category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, date__range=(date_start, date_end),category_id=category)))['total'] or 0
+        
+        if category_spent_total == 0:
+            fixed_fees_remaining += budget_target.objects.aggregate(total=Sum('target',filter=Q(user_id=user,category_id=category,date__range=(date_start, date_end))))['total'] or 0 
+    
+    sympol = "$"  
+    return f"{sympol}{fixed_fees_remaining:,.2f}"
+
+
+def this_month_status_calc(user,year,month_no):
+    
+    date_start = datetime(year,month_no,1)  
+    date_end = date_start +relativedelta(months=1)
+    month = month_dict[month_no]
+    days_month = date_end - timedelta(days=1)
+    days_month = days_month.day
+    
+    status = budget_status(user,None,date_start,date_end, days_month)
+    
+    return status
+
+def spent_trend(user,date):
+    year = date.year
+    month = date.month
+    day = date.day
+    date_counter = datetime(year,month,1) 
+    today = datetime(year,month,day) 
+    end_date = date_counter + relativedelta(months=1)-timedelta(days=1)
+    spent_list = []
+    expense = 0
+    while (date_counter <= end_date):
+    
+        expense += trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user,
+                                                                               IO='expense', 
+                                                                               date=date_counter)))['total'] or 0
+        
+        if date_counter <= today:
+            cummulative_spent = round(expense,2)
+        else:
+            cummulative_spent = ""
+            
+        datedisplay = date_counter.strftime("%b/%d")
+        spent_list.append({"y":cummulative_spent,"label":datedisplay})
+        date_counter = date_counter +timedelta(days=1)
+        
+    return spent_list
+
+
+
+def this_month_spent_percentage_calc(user,date):
+    
+    category_spent=[]   
+
+    year = date.year
+    month = date.month
+    date_start = datetime(year,month,1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+    
+    categories = main_category.objects.filter(user_id=user)
+    Total_month_spent = category_main_spent_sum(user,None,date_start,date_end)
+    
+    if Total_month_spent == 0:
+        return category_spent.append({'y': 100, 'name': "categories_name"})
+    
+    for category in categories:   
+        category_month_spent_total = round(category_main_spent_sum(user,category,date_start,date_end)*100/Total_month_spent,2)
+        category_spent.append({'y': category_month_spent_total, 'label': category.category_name})
+        
+    return category_spent
+
+def this_month_spent_sub_category_calc(user,date):
+    
+    category_spent=[]   
+
+    year = date.year
+    month = date.month
+    date_start = datetime(year,month,1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+    
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income','unassigned'])  
+    Total_month_spent = category_spent_sum(user,None,date_start,date_end)
+    
+    if Total_month_spent == 0:
+        return category_spent.append({'y': 100, 'name': "categories_name"})
+    
+    for category in categories:   
+        category_month_spent_total = round(category_spent_sum(user,category,date_start,date_end),2)
+        category_month_target_total = round(category_target_sum(user,category,date_start,date_end),2)
+        if category_month_spent_total ==0 and category_month_target_total ==0:
+            continue
+        category_spent.append({'y': category_month_spent_total, 'label': category.categories_name})
+        
+    return category_spent
+
+def this_month_trans_calc(user,date):
+    Trans_list=[]   
+    year = date.year
+    month = date.month
+    d_s = datetime(year,month,1)
+    d_e = date_start + relativedelta(months=1) - timedelta(days=1)   
+    
+    Transactions = trans.objects.filter(user_id=user,date__range=(d_s,d_e))
+    for transaction in Transactions:
+        print(transaction.date,transaction.description,transaction.amount,transaction.category_id.categories_name,transaction.IO)
+        Trans_list.append({"Date":transaction.date,"Description":transaction.description,"Amount":transaction.amount
+                            ,"Category":transaction.category_id.categories_name,"In/Out":transaction.IO})   
+    return Trans_list
+
+def this_month_target_calc(user,data_input):
+    category_target=[]   
+
+    year = data_input.year
+    month = data_input.month
+    date_start = datetime(year,month,1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
+    
+    categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income','refund or cashback','transfer','income','unassigned'])    
+    
+    for category in categories:   
+        category_month_spent_total = round(category_spent_sum(user,category,date_start,date_end),2)
+        category_month_target_total = round(category_target_sum(user,category,date_start,date_end),2)
+        remaining = category_month_target_total - category_month_spent_total
+        if remaining < 0:
+            remaining = 0
+        if category_month_spent_total ==0 and category_month_target_total ==0:
+            continue
+        category_target.append({'y': remaining, 'label': category.categories_name})
+    return  category_target
+
+# def this_month_spent_sub_category_percentage_inverse_calc(user,date):
+#     # spent_categories= this_month_spent_sub_category_percentage_calc(user,date)
+#     spent_categories_Target = []
+#     spent_categories= this_month_spent_sub_category_percentage_calc(user,date)
+#     target = this_month_target_calc(user,date)
+#     for spent_category in spent_categories:
+#     #     spent_categories_inverse_list.append({"y":100-spent_category['y'],"label":spent_category['label']})
+#     return spent_categories_Target
 
 # Create your views here.
 @login_required(login_url="/users/loginpage/")
@@ -682,4 +874,65 @@ def balance_track_monthly(request):
 
 @login_required(login_url="/users/loginpage/")
 def dashboard_view(request):
-    return render(request,"expense/dashboard.html")
+    month_no = date.today().month
+    month= month_dict[month_no]
+    user_name = request.user.first_name
+    today_date= date.today()
+    displayDate = today_date.strftime("%d %b, %Y")
+    context ={
+        "user_name" : user_name,
+        "displayDate":displayDate,
+        "month":month
+    }
+    return render(request,"expense/dashboard.html",context)
+
+@login_required(login_url="/users/loginpage/")
+def total_spent(request):
+    year = date.today().year
+    month_no = date.today().month
+    return JsonResponse(total_spent_calc(request.user,year,month_no), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def total_spent(request):
+    year = date.today().year
+    month_no = date.today().month
+    return JsonResponse(total_spent_calc(request.user,year,month_no), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def current_balance(request):
+    return JsonResponse(current_balance_calc_dashboard(request.user), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def fixed_fees_remaining(request):
+    year = date.today().year
+    month_no = date.today().month
+    return JsonResponse(fixed_fees_remaining_calc(request.user,year,month_no), safe=False)
+
+
+@login_required(login_url="/users/loginpage/")
+def this_month_status(request):
+    year = date.today().year
+    month_no = date.today().month
+    return JsonResponse(this_month_status_calc(request.user,year,month_no), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def this_month_spent_trend(request):
+    return JsonResponse(spent_trend(request.user,date.today()), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def this_month_spent_percentage(request):
+    return JsonResponse(this_month_spent_percentage_calc(request.user,date.today()), safe=False)
+
+
+@login_required(login_url="/users/loginpage/")
+def this_month_trans(request):
+    return JsonResponse(this_month_trans_calc(request.user,date.today()), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def this_month_spent_percentage_inverse(request):
+    return JsonResponse(this_month_target_calc(request.user,date.today()), safe=False)
+
+@login_required(login_url="/users/loginpage/")
+def this_month_spent_sub_categ_percentage(request):
+    return JsonResponse(this_month_spent_sub_category_calc(request.user,date.today()), safe=False)
+

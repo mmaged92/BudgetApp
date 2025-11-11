@@ -294,8 +294,7 @@ def update_account_balance(user):
     accounts = Accounts.objects.filter(user_id=user, account_type__in = ['Chequing','Saving'])
 
     account_balance = 0
-    
-    
+    total_account_balance = 0
     for account in accounts:  
         date = datetime(account.Starting_balance_date.year,account.Starting_balance_date.month,account.Starting_balance_date.day)
         date_end= date.today()
@@ -317,7 +316,8 @@ def update_account_balance(user):
             account_balance = account_balance + income + transfer_in - transfer_out - expense           
             date = date +timedelta(days=1)  
         account.Balance = round(account_balance,2)
+        total_account_balance += account_balance
         account.save()
     
-    return 
+    return total_account_balance
          

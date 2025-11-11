@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from .models import trans, categorization
 import csv
 from django.http import JsonResponse
-from target.models import categories_table
+from target.models import categories_table, main_category
 from accounts.models import Bank, Accounts
 from datetime import datetime, timedelta
 from django.core import serializers
@@ -82,63 +82,91 @@ def trans_add(request):
 
                     # if not trans.objects.filter(user_id=1, description=row['Description'],date=row['Date'],amount=row['Amount']).exists():
                         amount = row[Amount_column_name]
-
-                        try:
-                            category_name = categorization.objects.get(user_id=user,keyword__contains=row[Description_column_name])
-                            category = category_name.category_id
-                        except Exception:
-                            category_name = categories_table.objects.get(user_id=user,categories_name='unassigned')
-                            category = category_name  
-
                         try:
                             amount =float(amount)
                         except Exception:
                             amount = amount.replace("$", "").replace(",", "")
                             amount =float(amount)
+                        print(row[Description_column_name])   
+                        keywords = categorization.objects.filter(user_id=user)
+                        matched = False
+                        for keyword in keywords:
+                            if keyword.keyword.lower() in row[Description_column_name].lower():
+                                matched =True
+                                break
+                        
+                        if matched:
+                            category = keyword.category_id
+                            category_main = keyword.category_id.main_category_id
+                        else:
+                            category_name = categories_table.objects.get(user_id=user,categories_name='unassigned')
+                            category = category_name  
+                            category_main = main_category.objects.get(user_id=user,category_name='unassigned')
+                            print(2, category.categories_name)
+
+                        
                         
                         if card_type == 'Credit' and ('thank you' in row[Description_column_name].lower() or 'payment' in row[Description_column_name].lower()):
                             category = 'credit card payment'
+                            category_main = None
                             category = categories_table.objects.get(user_id=user,categories_name=category)
                             IO = 'credit card payment'
+                            print(3, category.categories_name)
                         elif card_type == 'Credit' and amount < 0 and amount_inversed == False:
                             category = 'refund or cashback'
+                            category_main = None
                             category = categories_table.objects.get(user_id=user,categories_name=category)
                             IO = 'income'
+                            print(4, category.categories_name)
                         elif card_type == 'Credit' and amount > 0 and amount_inversed == False:
                             IO = 'expense'
+                            print(5, category.categories_name)
                         elif card_type == 'Credit' and amount > 0 and amount_inversed == True:
                             category = 'refund or cashback'
+                            category_main = None
                             category = categories_table.objects.get(user_id=user,categories_name=category)
                             IO = 'income'
+                            print(6, category.categories_name)
                         elif card_type == 'Credit' and amount < 0 and amount_inversed == True:
                             IO = 'expense'
-                        elif card_type == 'Debit' and ('visa' in row[Description_column_name].lower() or 'mastercard' in row[Description_column_name].lower()):
+                            print(7, category.categories_name)
+                        elif card_type == 'Debit' and ('visa' in row[Description_column_name].lower() or 'mastercard' in row[Description_column_name].lower() or 'neo' in row[Description_column_name].lower() ):
                             IO = 'expense'
                             category = 'credit card payment'
+                            category_main = None
                             category = categories_table.objects.get(user_id=user,categories_name=category)
-                        
+                            print(8, category.categories_name)
                         elif card_type == 'Debit' and amount < 0 and 'e-transfer' in row[Description_column_name].lower():
                             IO = 'expense'
                             category = 'unassigned'
+                            category_main = main_category.objects.get(user_id=user,category_name='unassigned')
                             category = categories_table.objects.get(user_id=user,categories_name=category) 
+                            print(9, category.categories_name)
                         elif card_type == 'Debit' and amount > 0 and 'e-transfer' in row[Description_column_name].lower():
                             IO = 'income'
                             category = 'income'
+                            category_main = None
                             category = categories_table.objects.get(user_id=user,categories_name=category) 
+                            print(10, category.categories_name)
                         elif card_type == 'Debit' and amount < 0 and 'transfer' in row[Description_column_name].lower() and 'e-transfer' not in row[Description_column_name].lower() :
                             IO = 'transfer-out'
                             category = 'transfer'
+                            category_main = None
                             category = categories_table.objects.get(user_id=user,categories_name=category) 
+                            print(11, category.categories_name)
                         elif card_type == 'Debit' and amount > 0 and 'transfer' in row[Description_column_name].lower() and 'e-transfer' not in row[Description_column_name].lower() :
                             IO = 'transfer-in'
                             category = 'transfer'
+                            category_main = None
                             category = categories_table.objects.get(user_id=user,categories_name=category) 
+                            print(12, category.categories_name)
                             
                         elif card_type == 'Debit' and amount < 0:
                             IO = 'expense'
                         else:
                             IO = 'income'
                             category = 'income'
+                            category_main = None
                             category = categories_table.objects.get(user_id=user,categories_name=category) 
                         
                         try:
@@ -147,8 +175,8 @@ def trans_add(request):
                         except ValueError:
                             date = row[Date_column_name]
                             
-                        if not trans.objects.filter(user_id=user,description=row[Description_column_name],date=date,amount=abs(amount), category_id = category, IO = IO, Accounts_id= account_id).exists():
-                            trans.objects.create(user_id=user,description=row[Description_column_name],date=date,amount=abs(amount), category_id = category, IO = IO, Accounts_id= account_id)
+                        if not trans.objects.filter(user_id=user,description=row[Description_column_name],date=date,amount=abs(amount), category_id = category, main_category_id=category_main, IO = IO, Accounts_id= account_id).exists():
+                            trans.objects.create(user_id=user,description=row[Description_column_name],date=date,amount=abs(amount), category_id = category,main_category_id=category_main, IO = IO, Accounts_id= account_id)
 
             except FileNotFoundError:
                 print("file not found")
@@ -167,12 +195,15 @@ def trans_add(request):
             IO = request.POST.get('IO')
             try:
                 category = categories_table.objects.get(user_id=user,categories_name=category)
+                category_main = categories_table.objects.get(user_id=user,categories_name=category)
+                category_main = category_main.main_category_id
             except Exception:
                 category_name = categories_table.objects.get(user_id=user,categories_name='unassigned')
                 category = category_name
+                category_main = main_category.objects.get(user_id=user,category_name='unassigned')
                   
-            if not trans.objects.filter(user_id=user, description=description,date=date,amount=amount, category_id = category, IO = IO, Accounts_id=account_id).exists():
-                trans.objects.create(user_id=user,description=description,date=date,amount=amount, category_id = category, IO = IO, Accounts_id=account_id)
+            if not trans.objects.filter(user_id=user, description=description,date=date,amount=amount, category_id = category,main_category_id= category_main,IO = IO, Accounts_id=account_id).exists():
+                trans.objects.create(user_id=user,description=description,date=date,amount=amount, category_id = category,main_category_id= category_main ,IO = IO, Accounts_id=account_id)
 
             
     categories = categories_table.objects.filter(user_id=user)
@@ -194,17 +225,25 @@ def trans_all(request):
     
     transactions_list = []
     for transaction in transactions:
-            
+        
+        try: 
+            main_category = transaction.main_category_id.category_name
+        except Exception:
+            main_category = "*********"
+        
+        
+        
         if transaction.category_id == None:
             transactions_list.append({'Description': transaction.description, "Date": transaction.date, "Amount":transaction.amount, "IO":transaction.IO
-                                  , "Bank":transaction.Accounts_id.account_name,"Category":'***********',
+                                  , "Bank":transaction.Accounts_id.account_name,"Category":'***********',"Category Main":main_category,
                                   "Account Name":transaction.Accounts_id.account_name, "Account Number": transaction.Accounts_id.account_number,"Account Type":transaction.Accounts_id.account_type,
                                   "Bank":transaction.Accounts_id.Bank.Bank,"category_id":"", "transaction_id":transaction.id, "Account_id":transaction.Accounts_id.id})
         else:
             transactions_list.append({'Description': transaction.description, "Date": transaction.date, "Amount":transaction.amount, "IO":transaction.IO
-                                  , "Bank":transaction.Accounts_id.account_name,"Category":transaction.category_id.categories_name,
+                                  , "Bank":transaction.Accounts_id.account_name,"Category":transaction.category_id.categories_name,"Category_Main":main_category,
                                   "Account Name":transaction.Accounts_id.account_name,"Account Number":transaction.Accounts_id.account_number, "Account Type":transaction.Accounts_id.account_type,
                                   "Bank":transaction.Accounts_id.Bank.Bank,"category_id":transaction.category_id.id, "transaction_id":transaction.id, "Account_id":transaction.Accounts_id.id})
+    print(transactions_list)
     return JsonResponse(transactions_list, safe=False)
 
 @login_required(login_url="/users/loginpage/")
@@ -366,16 +405,18 @@ def keyword_insert(request):
         else:
             print("error") # insert message error
 
-    transactions = trans.objects.filter(user_id=user)
-    for transaction in transactions:
-        description = transaction.description
-        try:
-            category_name = categorization.objects.get(user_id=user,keyword__contains=description)
-            category = category_name.category_id
-            transaction.category_id = category
-            transaction.save()
-        except Exception:
-            pass
+    # transactions = trans.objects.filter(user_id=user)
+    # for transaction in transactions:
+    #     description = transaction.description
+    #     try:
+    #         category_name = categorization.objects.get(user_id=user,keyword__contains=description)
+    #         category = category_name.category_id
+    #         transaction.category_id = category
+    #         transaction.save()
+    #     except Exception:
+    #         category_name = categories_table.objects.get(user_id=user,categories_name='unassigned')
+    #         transaction.category_id = category_name
+    #         transaction.save()
         
     category_list = categories_table.objects.filter(user_id=user)
 
@@ -463,4 +504,20 @@ def keyword_category_update(request):
         return JsonResponse({'status': 'updated', 'new_value': new_value})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
-             
+@login_required(login_url="/users/loginpage/")
+def refresh_categorization(request):
+    user = request.user
+    trans_list = trans.objects.filter(user_id=user)
+    if request == 'PUT':
+        print('refreshed')
+        for transaction in trans_list:
+            description = transaction.description
+            try:
+                category_name = categorization.objects.get(user_id=user,keyword__contains=description)
+                category = category_name.category_id
+                transaction.category_id = category
+                transaction.save()
+            except Exception:
+                pass
+        return JsonResponse({'status': 'updated'})
+    return JsonResponse({'error': 'Invalid method'}, status=405)

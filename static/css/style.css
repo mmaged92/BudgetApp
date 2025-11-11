@@ -391,3 +391,9 @@ a.btn-toggle:hover {
   position: relative;
   height: 850px;
 }
+
+#reloadpage {
+  cursor: pointer;
+  padding: 5px;
+  font-size: 18px;
+}
