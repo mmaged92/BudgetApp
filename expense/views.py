@@ -34,9 +34,9 @@ def getMonthlyView(user):
     monthly_view=[]   
     month_no = next(int(n) for n, m in month_dict.items() if m == month)
     print(month_no)
-    date_start = datetime(year,month_no,1) - timedelta(days=1)
+    date_start = datetime(year,month_no,1)
     print(date_start)
-    date_end = date_start + relativedelta(months=1)
+    date_end = date_start + relativedelta(months=1) - timedelta(days=1)
 
     categories = categories_table.objects.filter(user_id=user).exclude(categories_name__in=['credit card payment', 'refund or cashback','transfer','income'])
     
@@ -53,7 +53,8 @@ def getMonthlyView(user):
             Remianing = category_target_total - category_spent_total
         
         status = budget_status(user,category,date_start,date_end, days_month)
-
+        if category_spent_total == 0 and category_target_total == 0:
+            continue
         monthly_view.append({'category': category.categories_name,'Total_spent': category_spent_total , "Total_Target": category_target_total, "Remianing": round(Remianing,2), "Status": status})
 
     Total_month_spent = category_spent_sum(user,None,date_start,date_end)
@@ -74,6 +75,7 @@ def category_spent_sum(user,category,d_s,d_e):
         category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', date__range=(d_s, d_e),category_id__in=category)))['total']    
     else:
         category_spent_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense', category_id=category, date__range=(d_s, d_e))))['total']    
+    
     if category_spent_total == None:
         category_spent_total = 0
     else:
@@ -261,17 +263,19 @@ def get_target_calc(user):
             month_title = month_dict_add[month_no]        
             try:
                 target = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user,category_id = category.id, year=year , month = month)))['total'] or 0
-
             except Exception:
                 target = 0
+            if target == 0:
+                continue
             category_dict[month_title] = target
-        
         
         try:
             Category_target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user,category_id = category.id, year=year)))['total'] or 0
             
         except Exception:
             Category_target_total = 0
+        if Category_target_total == 0:
+            continue 
         category_dict['Total_Target'] = round(Category_target_total,2)
         target_list.append(category_dict)   
     
@@ -321,15 +325,20 @@ def get_actual_calc(user):
         date_end = datetime(year, 12, 1)
 
         Category_actual_annual_total = trans.objects.aggregate(total=Sum('amount', filter=Q(user_id=user, IO='expense',category_id=category ,date__range=(date_start, date_end))))['total'] or 0
-
-        category_dict['Total_Actual'] = round(Category_actual_annual_total,2)
+         
+        
         
         try:
             Category_target_total = budget_target.objects.aggregate(total=Sum('target', filter=Q(user_id=user,category_id = category.id, date__range=(date_start, date_end))))['total'] or 0
             
         except Exception:
             Category_target_total = 0
-        category_dict['Total_Target'] = Category_target_total
+            
+        if Category_actual_annual_total ==0 and Category_target_total ==0:
+            continue
+            
+        category_dict['Total_Actual'] = round(Category_actual_annual_total,2)
+        category_dict['Total_Target'] = round(Category_target_total,2)
         
         if "unassigned" == category.categories_name :
             Status = "-"
