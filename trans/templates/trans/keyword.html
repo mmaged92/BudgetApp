@@ -6,41 +6,53 @@
 {% endblock %}
 
 {% block content %}
-<p class="heading " >Keywords</p>
-<div class="container justify-content-md-center">
-    <form action = {% url 'keyword'%} method = 'post'>
+<div class='row card-container'>
+    <div class = 'col-12'>
+        <div class = 'card-keyword-1'>
+            <p class="heading " >Keywords</p>
+            <div class="container justify-content-md-center">
+                <form action = {% url 'keyword'%} method = 'post'>
 
-        {% csrf_token %}
-        <div class="row">
-            <div class="col-2">
-                <label> Category Name</label>
-            </div>
-            <div class="col-4">
-                <select name = 'category_id' style="width: 100%;">
-                    <option value = ''>--select category--</option>
-                    {% for category in category_list%}
-                        <option value = {{category.id}}> {{category.categories_name}} </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-2">
-                <label> add new keyword </label>
-            </div>
-            <div class="col-4">
-                <input type='text' name='new_keyword' style="width: 100%;">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-2">
+                            <label> Category Name</label>
+                        </div>
+                        <div class="col-4">
+                            <select name = 'category_id' style="width: 100%;" required>
+                                <option value = ''>--select category--</option>
+                                {% for category in category_list%}
+                                    <option value = {{category.id}}> {{category.categories_name}} </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-2">
+                            <label> add new keyword </label>
+                        </div>
+                        <div class="col-4">
+                            <input type='text' name='new_keyword' style="width: 100%;" required>
+                        </div>
+                    </div>
+                    <div class="row justify-content-md-center" style="padding-top: 10px">
+                        <div class = "col-2 justify-content-md-center">
+                            <button type='submit' class="btn btn-success"> Submit</button>
+                    
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-        <div class="row justify-content-md-center" style="padding-top: 10px">
-            <div class = "col-2 justify-content-md-center">
-                <button type='submit' class="btn btn-success"> Submit</button>
-        
-            </div>
-        </div>
-    </form>
+    </div>
 </div>
-<div class="d-flex align-items-center"> <p class="heading mb-0 me-2">Keywords List</h1><i class="fa-solid fa-trash" id = 'deleteall'></i></div>
+<div class='row card-container'>
+    <div class = 'col-12'>
+        <div class = 'card-keyword-2'>
+            <div class="d-flex align-items-center"> <p class="heading mb-0 me-2">Keywords List</h1><i class="fa-solid fa-trash" id = 'deleteall'></i></div> 
 
-    <div id="myGrid" style="height: 90vh"></div>
+                <div id="myGrid" style="height: 800px"></div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 

@@ -40,7 +40,7 @@ def trans_add(request):
             Date_column_name = request.POST.get("Date_column_name")
             Description_column_name = request.POST.get("Description_column_name")
             Amount_column_name = request.POST.get("Amount_column_name")
-            
+
             if not Date_column_name:
                 Date_column_name = "Date"
             if not Date_column_name:
@@ -51,20 +51,26 @@ def trans_add(request):
             card_type = request.POST.get('card_type')
             account_name = request.POST.get('account_name')
             
-            account_id = Accounts.objects.get(user_id = user, account_name=account_name)
-            
             file_path = request.FILES['file_path']
-                  
+            
+            if not file_path or not account_name or not card_type or not Amount_column_name or not Date_column_name or not Date_column_name:
+                return redirect("trans_page")
+            if ".csv"  not in file_path:
+                return redirect("trans_page")
+
             decoded_file = file_path.read().decode('utf-8-sig').splitlines()
             reader = csv.DictReader(decoded_file)
             rows = list(reader)
 
-            
+            account_id = Accounts.objects.get(user_id = user, account_name=account_name)
             amount_inversed = False
         # file_path = 'C:/Users/mahmo/OneDrive/Desktop/Budget/Scotia_Momentum_VISA_card_4023_092825.csv'
             try:
                 # with open(file_path, newline='') as csvfile:
                 #     reader = csv.DictReader(csvfile)
+                
+                
+                
                 for row in rows:
                     amount  = row[Amount_column_name] if row['Amount'].strip() != '' else 0.0
                     
@@ -178,8 +184,8 @@ def trans_add(request):
                         if not trans.objects.filter(user_id=user,description=row[Description_column_name],date=date,amount=abs(amount), category_id = category, main_category_id=category_main, IO = IO, Accounts_id= account_id).exists():
                             trans.objects.create(user_id=user,description=row[Description_column_name],date=date,amount=abs(amount), category_id = category,main_category_id=category_main, IO = IO, Accounts_id= account_id)
 
-            except FileNotFoundError:
-                print("file not found")
+            except Exception:
+                return redirect("trans_page")
             
             
         if input_type =='single_entry':  
@@ -189,10 +195,14 @@ def trans_add(request):
             amount = request.POST.get('amount')
             category = request.POST.get('category')
 
-            account_name = request.POST.get('account_name')
-
-            account_id = Accounts.objects.get(user_id=user,account_name=account_name)
+            account_name = request.POST.get('account_name_se')
             IO = request.POST.get('IO')
+            
+            if not description or not date or not amount or not category or not account_name or not IO:
+                return redirect("trans_page")
+            
+            account_id = Accounts.objects.get(user_id=user,account_name=account_name)
+            
             try:
                 category = categories_table.objects.get(user_id=user,categories_name=category)
                 category_main = categories_table.objects.get(user_id=user,categories_name=category)
@@ -235,7 +245,7 @@ def trans_all(request):
         
         if transaction.category_id == None:
             transactions_list.append({'Description': transaction.description, "Date": transaction.date, "Amount":transaction.amount, "IO":transaction.IO
-                                  , "Bank":transaction.Accounts_id.account_name,"Category":'***********',"Category Main":main_category,
+                                  , "Bank":transaction.Accounts_id.account_name,"Category":'***********',"Category_Main":main_category,
                                   "Account Name":transaction.Accounts_id.account_name, "Account Number": transaction.Accounts_id.account_number,"Account Type":transaction.Accounts_id.account_type,
                                   "Bank":transaction.Accounts_id.Bank.Bank,"category_id":"", "transaction_id":transaction.id, "Account_id":transaction.Accounts_id.id})
         else:
@@ -243,7 +253,6 @@ def trans_all(request):
                                   , "Bank":transaction.Accounts_id.account_name,"Category":transaction.category_id.categories_name,"Category_Main":main_category,
                                   "Account Name":transaction.Accounts_id.account_name,"Account Number":transaction.Accounts_id.account_number, "Account Type":transaction.Accounts_id.account_type,
                                   "Bank":transaction.Accounts_id.Bank.Bank,"category_id":transaction.category_id.id, "transaction_id":transaction.id, "Account_id":transaction.Accounts_id.id})
-    print(transactions_list)
     return JsonResponse(transactions_list, safe=False)
 
 @login_required(login_url="/users/loginpage/")
@@ -398,6 +407,8 @@ def keyword_insert(request):
     if request.method == "POST":
         keyword = request.POST.get('new_keyword')
         category_id = request.POST.get('category_id')
+        if not keyword or not category_id:
+            return redirect("keyword")
         if keyword and category_id:
             category_id = categories_table.objects.get(id=category_id)
             if not categorization.objects.filter(user_id=user,keyword=keyword, category_id = category_id).exists():    

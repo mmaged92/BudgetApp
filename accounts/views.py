@@ -55,24 +55,41 @@ def add_account(request):
         account_type = request.POST.get('account_type')
         Bank_name = request.POST.get('Bank_name')
         account_name = request.POST.get('account_name')
-
+        if not account_type or not Bank_name or not account_name:
+            return redirect('add_account') 
+        
         Bank_id = Bank.objects.get(Bank=Bank_name)
         if account_type == 'Saving' or account_type == 'Chequing':
             account_number = request.POST.get('account_number')
             Starting_balance = request.POST.get('account_balance')
             Starting_balance_date = request.POST.get('account_balance_date')
+            if not account_number or not Starting_balance or not Starting_balance_date:
+                if not account_number:
+                    account_number = ""
+                if not Starting_balance:
+                    Starting_balance = ""
+                if not Starting_balance_date:
+                    Starting_balance_date = ""
+            
             Accounts.objects.create(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number,Starting_balance=Starting_balance, Starting_balance_date=Starting_balance_date)
             return redirect('add_account')        
         
         if  account_type == 'cash':
             Starting_balance = request.POST.get('account_balance')
-            Starting_balance_date = request.POST.get('account_balance_date')           
+            Starting_balance_date = request.POST.get('account_balance_date')      
+            if not Starting_balance or not Starting_balance_date:
+                if not Starting_balance:
+                    Starting_balance = ""
+                if not Starting_balance_date:
+                    Starting_balance_date = "" 
             account_number = ""
             Accounts.objects.create(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name, Starting_balance=Starting_balance, Starting_balance_date=Starting_balance_date)
             return redirect('add_account')        
              
         if  account_type == 'Credit' or account_type == 'line of credit':    
             account_number = request.POST.get('account_number')
+            if not account_number:
+                account_number = ""
             Starting_balance = ""
             Starting_balance_date = ""
             Accounts.objects.create(user_id=user,Bank=Bank_id,account_type=account_type,account_name=account_name,account_number=account_number,Starting_balance=Starting_balance)
@@ -90,6 +107,8 @@ def add_bank(request):
     user = request.user
     if request.method == "POST":
         Bank_new = request.POST.get('Bank_new')
+        if not Bank_new:
+            return redirect("add_bank")
         if not Bank.objects.filter(user_id = user, Bank=Bank_new):
             Bank.objects.create(user_id = user, Bank=Bank_new)
             return redirect('add_bank')  

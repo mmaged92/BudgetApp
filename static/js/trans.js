@@ -357,7 +357,65 @@ async function refresh_page() {
             "X-CSRFToken": getCookie("csrftoken"),
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({'refresh':'refresh'}),
+        body: JSON.stringify({ 'refresh': 'refresh' }),
     });
     window.location.reload();
 }
+
+
+function validateForm() {
+
+    // const file_path = document.forms["trans_entry"]["file_path"].value;
+    // const card_type = document.forms["trans_entry"]["card_type"].value;
+    // const account_name = document.forms["trans_entry"]["account_name"].value;
+    // const Date_column_name = document.forms["trans_entry"]["Date_column_name"].value;
+    // const Description_column_name = document.forms["trans_entry"]["Description_column_name"].value;
+    // const Amount_column_name = document.forms["trans_entry"]["Amount_column_name"].value;
+
+    const alertBox = document.getElementById("alart-file").style
+    alertBox.display = 'block';
+    setTimeout(() => {
+        alertBox.display = 'none';
+    }, 2000)
+    event.preventDefault();
+
+
+    // if (file_path == "" || card_type == "" || account_name == "" || Date_column_name == "" || Description_column_name == "" || Amount_column_name == "") {
+    //     if (file_path == "") {
+    //         alert("File must be entered");
+    //     }
+
+    //     if (card_type == "") {
+    //         alert("Card type field must be filled");
+    //     }
+
+    //     if (account_name == "") {
+    //         alert("Account field must be filled");
+    //     }
+
+    //     if (Date_column_name == "") {
+    //         alert("Date column name field must be filled");
+    //     }
+
+    //     if (Description_column_name == "") {
+    //         alert("Description column name field must be filled");
+    //     }
+
+    //     if (Amount_column_name == "") {
+    //         alert("Amount column name field must be filled");
+    //     }
+
+    //     return false;
+    // }
+
+}
+function validateFormSE() {
+    const alertBox = document.getElementById("alart-single-e").style
+    alertBox.display = 'block';
+    setTimeout(() => {
+        alertBox.display = 'none';
+    }, 2000)
+    event.preventDefault();
+
+}
+

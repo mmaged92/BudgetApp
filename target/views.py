@@ -99,6 +99,7 @@ def category_add(request):
         fixed_fees = request.POST.get('fixed_fees')
         main_category_input = request.POST.get('main_category')
         main_category_name = main_category.objects.get(user_id=user,category_name=main_category_input)
+        
         if fixed_fees == "on":
             fixed_fees = True
         else:
@@ -179,13 +180,10 @@ def target_insert(request):
     user= request.user
     if request.method == "POST":
         freq = request.POST.get('frequency')
-        if not freq:
-            return
+
         category = request.POST.get('categories')
-        if not category:
-            return
-        else:
-            category = categories_table.objects.get(user_id=user,categories_name=category)
+
+            
 
         amount = request.POST.get('amount')
         if not amount:
@@ -193,22 +191,26 @@ def target_insert(request):
         
         
         date = request.POST.get('date')
-        if not date:
-            return
-        else:
-            date_format = "%Y-%m-%d"
-            date_string= date
-            date = datetime.strptime(date_string, date_format)
-            
-        date_end = request.POST.get('date_end')
-        if not date_end:
-            return
-        else:
-            date_format = "%Y-%m-%d"
-            date_string= date_end
-            date_end = datetime.strptime(date_string, date_format)
 
-              
+
+
+        date_end = request.POST.get('date_end')
+        
+        if not date_end or not date or not amount or not category or not freq:
+            return redirect("target_insert")  
+
+
+        date_format = "%Y-%m-%d"
+        date_string= date
+        date = datetime.strptime(date_string, date_format)
+            
+        date_format = "%Y-%m-%d"
+        date_string= date_end
+        date_end = datetime.strptime(date_string, date_format)
+            
+            
+
+        category = categories_table.objects.get(user_id=user,categories_name=category)     
         if freq == "monthly":
             print(freq)
             while(date<=date_end):

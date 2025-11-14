@@ -477,7 +477,7 @@ def monthly_balance_tracker(user):
             if date_start.month == account.Starting_balance_date.month :
                 accounts_balance = accounts_balance + account.Starting_balance
             
-        
+            
         # print(month_title,previous_balance, accounts_balance , difference)  
         account__balance_list.append({month_title: round(accounts_balance,2)} )
     # print(account__balance_list[0])

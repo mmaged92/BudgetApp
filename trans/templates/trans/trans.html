@@ -7,149 +7,169 @@
 
 {% block content %}
 
-<p class="heading" >Upload csv file</p>
-    <div class="container justify-content-md-center">
+<div class="alert alert-success" role="alert" id = 'alart-file'>
+  File Uploaded successfully
+</div>
 
-        <form action={% url 'trans_page'%} method="post" enctype="multipart/form-data">
-            {%  csrf_token %}
-            <input type="hidden" name="input_type" value="file_upload">
-            <div class="row justify-content-md-center" style="padding-bottom: 5px">
-                <div class="col-6 ">
-                    <input class="form-control" type='file' name='file_path' accept=".csv">
-                </div>
+<div class="alert alert-success" role="alert" id = 'alart-single-e'>
+  Transaction entered successfully
+</div>
+
+<div class='row card-container'>
+    <div class = 'col-12'>
+        <div class = 'card-trans-1'>
+            <p class="heading" >Upload csv file</p>
+            <div class="container justify-content-md-center">
+                <form name="trans_entry" action={% url 'trans_page'%} onsubmit="validateForm()" method="post" enctype="multipart/form-data" >
+                    {%  csrf_token %}
+                    <input type="hidden" name="input_type" value="file_upload" required>
+                    <div class="row justify-content-md-center" style="padding-bottom: 5px">
+                        <div class="col-6 ">
+                            <input class="form-control" type='file' name='file_path' id = 'file_path' accept=".csv">
+                        </div>
+                    </div>
+                    <div class="row justify-content-md-center">
+                    <div class="col-2">
+                        <label>Card type</label>
+                    </div>
+                    <div class="col-4">  
+                        <select id = 'card_type' name='card_type'style="width: 100%;" required> 
+                            <option value=''>--Debit/Credit--</option>
+                            {%for card_type in card_types %}
+                                <option value = "{{card_type}}">{{card_type}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    </div>
+                    <div class="row justify-content-md-center">
+                    <div class="col-2">
+                        <label> Account</label>
+                    </div>
+                    <div class="col-4">
+                        <select id  = 'account_name' name ='account_name' style="width: 100%;" required> 
+                            <option value=''>--Select Account--</option>
+                            {%for account_name in account_names %}
+                                <option value = "{{account_name.account_name}}">{{account_name.account_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    </div>
+                    <div class="row justify-content-md-center" style="padding-bottom: 5px">
+                        <label style="text-align: center;">File Mapping</label>
+                    </div>
+                    <div class="row justify-content-md-center" style="padding-bottom: 5px">
+                        <div class="col-2 ">
+                            <label>Enter name of Date Column</label>
+                        </div>
+                        <div class="col-2 ">
+                            <input id = 'Date_column_name' type='text' name = 'Date_column_name' style="width: 100%;" required>
+                        </div>
+                        <div class="col-2 ">
+                            <label>Enter name of Description Column</label>
+                        </div>
+                        <div class="col-2 ">
+                            <input id = 'Description_column_name' type='text' name = 'Description_column_name' style="width: 100%;" required>
+                        </div>
+                        <div class="col-2 ">
+                            <label>Enter name of Date Amount Column</label>
+                        </div>
+                        <div class="col-2 ">
+                            <input id = 'Amount_column_name' type='text' name = 'Amount_column_name' style="width: 100%;" required>
+                        </div>
+                    </div>   
+
+                    <div class="text-center" style="padding-top:10px; padding-bottom: 10px" >
+                        <button type = 'submit' class="btn btn-success ">Upload File</button>
+                    </div>
+                </form>
+                
             </div>
-            <div class="row justify-content-md-center">
-              <div class="col-2">
-                <label>Uploaded csv type</label>
-              </div>
-              <div class="col-4">  
-                <select id = 'card_type' name='card_type'style="width: 100%;"> 
-                    <option value=''>--Debit/Credit--</option>
-                    {%for card_type in card_types %}
-                        <option value = "{{card_type}}">{{card_type}}</option>
-                    {% endfor %}
-                </select>
-              </div>
-            </div>
-            <div class="row justify-content-md-center">
-              <div class="col-2">
-                <label> Account</label>
-              </div>
-              <div class="col-4">
-                <select id  = 'account_name' name ='account_name' style="width: 100%;"> 
-                    <option value=''>--Select Account--</option>
-                    {%for account_name in account_names %}
-                        <option value = "{{account_name.account_name}}">{{account_name.account_name}}</option>
-                    {% endfor %}
-                </select>
-              </div>
-            </div>
-            <div class="row justify-content-md-center" style="padding-bottom: 5px">
-                <label style="text-align: center;">File Mapping</label>
-            </div>
-            <div class="row justify-content-md-center" style="padding-bottom: 5px">
-                <div class="col-2 ">
-                    <label>Enter name of Date Column</label>
-                </div>
-                <div class="col-2 ">
-                    <input type='text' name = 'Date_column_name' style="width: 100%;">
-                </div>
-                <div class="col-2 ">
-                    <label>Enter name of Description Column</label>
-                </div>
-                <div class="col-2 ">
-                    <input type='text' name = 'Description_column_name' style="width: 100%;">
-                </div>
-                <div class="col-2 ">
-                    <label>Enter name of Date Amount Column</label>
-                </div>
-                <div class="col-2 ">
-                    <input type='text' name = 'Amount_column_name' style="width: 100%;">
-                </div>
-            </div>   
-            <div class="text-center" style="padding-top:10px; padding-bottom: 10px" >
-                <button type = 'submit' class="btn btn-success ">Upload File</button>
-            </div>
-        </form>
-        
+        </div>
     </div>
+</div>
     <div class="hr-with-text">
         <span id="hr-style">Or</span>
     </div>
-    <p class="heading " > Enter Single Transaction</p>
-    <div class="container justify-content-md-center">
 
-        <form action={% url 'trans_page'%} method="post" enctype="multipart/form-data">
-            {%  csrf_token %}
-            <div class="row justify-content-md-center" style="padding-bottom: 5px">
-                <div class="col-2 ">
-                    <label>Description</label>
-                </div>
-                <div class="col-4 ">
-                    <input type='text' name = 'description' style="width: 100%;">
-                </div>
-                <div class="col-2 ">
-                    <label>Date</label>
-                </div>
-                <div class="col-4 ">
-                    <input type='date' name = 'date' style="width: 100%;">
-                </div>
-            </div>
-            <div class="row justify-content-md-center" style="padding-bottom: 5px">
-                <div class="col-2 ">
-                    <label>Amount</label>
-                </div>
-                <div class="col-4 ">
-                    <input type='number' name = 'amount' style="width: 100%;">
-                </div>
-                <div class="col-2 ">
-                    <label> Type </label>
-                </div>
-                <div class="col-4 ">
-                    <select name='IO' tyle="width: 100%;">
-                        <option value=''>--income/expense--</option>
-                        {%for io in ios %}
-                            <option value = "{{io}}">{{io}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="row justify-content-md-center" style="padding-bottom: 5px">
-                <div class="col-2 ">
-                    <label>Category</label>
-                </div>
-                <div class="col-4">
-                    <select name='category' style="width: 100%;">
-                        <option value=''>--Select Category--</option>
-                        {%for category in categories %}
-                            <option value = "{{category.categories_name}}">{{category.categories_name}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-2 ">
-                    <label>Account</label>
-                </div>
-                <div class="col-4">
-                    <select id = 'account_name' name ='account_name' style="width: 100%;">
-                        <option value=''>--Select Account Name--</option>
-                        {%for account_name in account_names %}
-                            <option value = "{{account_name.account_name}}">{{account_name.account_name}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
+<div class='row card-container'>
+    <div class = 'col-12'>
+        <div class = 'card-trans-2'>
+            <p class="heading " > Enter Single Transaction</p>
+            <div class="container justify-content-md-center">
 
-         
-            <div class="text-center" style="padding-top:10px">
-                <button type = 'submit' class="btn btn-success ">Insert Single Transaction</button>
+                <form name="single_trans_entry" action={% url 'trans_page'%} method="post" onsubmit="validateFormSE()" enctype="multipart/form-data">
+                    {%  csrf_token %}
+                    <div class="row justify-content-md-center" style="padding-bottom: 5px">
+                        <div class="col-2 ">
+                            <label>Description</label>
+                        </div>
+                        <div class="col-4 ">
+                            <input type='text' name = 'description' id = 'desc' style="width: 100%;" required>
+                        </div>
+                        <div class="col-2 ">
+                            <label>Date</label>
+                        </div>
+                        <div class="col-4 ">
+                            <input type='date' name = 'date' id = 'date' style="width: 100%;" required>
+                        </div>
+                    </div>
+                    <div class="row justify-content-md-center" style="padding-bottom: 5px">
+                        <div class="col-2 ">
+                            <label>Amount</label>
+                        </div>
+                        <div class="col-4 ">
+                            <input type='number' name = 'amount' id = 'amount' style="width: 100%;" required>
+                        </div>
+                        <div class="col-2 ">
+                            <label> Type </label>
+                        </div>
+                        <div class="col-4 ">
+                            <select name='IO' id = 'IO' amountstyle="width: 100%;" required>
+                                <option value=''>--income/expense--</option>
+                                {%for io in ios %}
+                                    <option value = "{{io}}">{{io}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row justify-content-md-center" style="padding-bottom: 5px">
+                        <div class="col-2 ">
+                            <label>Category</label>
+                        </div>
+                        <div class="col-4">
+                            <select id = 'category' name='category' style="width: 100%;" required>
+                                <option value=''>--Select Category--</option>
+                                {%for category in categories %}
+                                    <option value = "{{category.categories_name}}">{{category.categories_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-2 ">
+                            <label>Account</label>
+                        </div>
+                        <div class="col-4">
+                            <select id = 'account_name_se' name ='account_name_se' style="width: 100%;" required>
+                                <option value=''>--Select Account Name--</option>
+                                {%for account_name in account_names %}
+                                    <option value = "{{account_name.account_name}}">{{account_name.account_name}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                
+                    <div class="text-center" style="padding-top:10px">
+                        <button type = 'submit' class="btn btn-success ">Insert Single Transaction</button>
+                    </div>
+                    <input type="hidden" name="input_type" value="single_entry">
+                </form>
             </div>
-            <input type="hidden" name="input_type" value="single_entry">
-        </form>
+            {% comment %} <h1>Transaction List</h1>
+            <i class="fa-solid fa-trash" id = 'deletealltrans'></i>
+            <div id="myGridtrans" style="height: 90vh"></div> {% endcomment %}
+        </div>
     </div>
-    {% comment %} <h1>Transaction List</h1>
-    <i class="fa-solid fa-trash" id = 'deletealltrans'></i>
-    <div id="myGridtrans" style="height: 90vh"></div> {% endcomment %}
-
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
