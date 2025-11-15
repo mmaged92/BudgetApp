@@ -544,3 +544,56 @@ a.btn-toggle:hover {
   height: 850px;
 
 }
+
+.card-tv-1 {
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  padding: 20px 16px;
+  position: relative;
+  height: 100px;
+
+}
+.card-tv-2 {
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  padding: 20px 16px;
+  position: relative;
+  height: 850px;
+
+}
+
+.card-av-1 {
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  padding: 20px 16px;
+  position: relative;
+  height: 530px;
+
+}
+.card-mv-1 {
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  padding: 20px 16px;
+  position: relative;
+  height: 530px;
+
+}
+
+.card-av-all {
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  padding: 20px 16px;
+  position: relative;
+  height: 400px;
+
+}
+
+.card-mv-2 {
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  padding: 20px 16px;
+  position: relative;
+  height: 600px;
+  align-content: center;
+
+}
